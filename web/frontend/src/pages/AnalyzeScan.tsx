@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Upload, X, Loader2, Layers, Gauge, Waypoints, Send, Shield, Pencil, ArrowLeft, Download } from "lucide-react";
-import * as SelectPrimitive from "@radix-ui/react-select";
-import * as SliderPrimitive from "@radix-ui/react-slider";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Upload, X, Send, Pencil, ArrowLeft, Download } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -15,7 +13,6 @@ import {
   type ScanRecord,
 } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
-import FindingsTable from "../components/FindingsTable";
 import { useTranslation } from "react-i18next";
 
 const ACCEPT = ".jpg,.jpeg,.png,.bmp,.tiff,.tif";
@@ -77,27 +74,9 @@ export default function AnalyzeScan() {
   const [resultImageError, setResultImageError] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
-  const [openPopover, setOpenPopover] = useState<string | null>(null);
-  const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const patientInputRef = useRef<HTMLInputElement>(null);
-
-  const LOADING_MESSAGES = [
-    t("analyze.loading.analyzing"),
-    t("analyze.loading.detecting"),
-    t("analyze.loading.mapping"),
-    t("analyze.loading.almost"),
-  ];
-
-  useEffect(() => {
-    if (!loading) { setLoadingMsg(0); return; }
-    const interval = setInterval(() => {
-      setLoadingMsg((prev) => (prev + 1) % LOADING_MESSAGES.length);
-    }, 2800);
-    return () => clearInterval(interval);
-  }, [loading]);
 
   const firstName = userProfile?.firstName || user?.displayName?.split(" ")[0] || "";
 
@@ -202,10 +181,27 @@ export default function AnalyzeScan() {
   }, [location.search, user]);
 
   const handleFile = useCallback((f: File) => {
-    setFile(f);
-    setResult(null);
-    setResultImageError(false);
-    setError("");
+    // Validate MIME type
+    const validTypes = ["image/jpeg", "image/png", "image/bmp", "image/tiff"];
+    if (f.type && !validTypes.includes(f.type)) {
+      setError("Please upload a valid image file (JPG, PNG, BMP, TIFF).");
+      return;
+    }
+    // Validate the browser can render the image
+    const testUrl = URL.createObjectURL(f);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(testUrl);
+      setFile(f);
+      setResult(null);
+      setResultImageError(false);
+      setError("");
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(testUrl);
+      setError("This file could not be read as an image.");
+    };
+    img.src = testUrl;
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -227,7 +223,18 @@ export default function AnalyzeScan() {
   };
 
   const handleAnalyze = async () => {
-    if (!file || !selectedModel) return;
+    if (!file || !selectedModel || loading) return;
+
+    // Basic file validation
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+    if (file.size > MAX_FILE_SIZE) {
+      setError(t("analyze.errors.fileTooLarge", { defaultValue: "File is too large (max 50 MB)." }));
+      return;
+    }
+    if (file.size === 0) {
+      setError(t("analyze.errors.fileEmpty", { defaultValue: "File is empty." }));
+      return;
+    }
 
     // Guest free-run gate: block if already used
     if (!user && localStorage.getItem("cavio_guest_used")) {
@@ -248,6 +255,12 @@ export default function AnalyzeScan() {
         toothAssign,
         patientName,
       );
+
+      // Validate the response has usable data
+      if (!res || typeof res.suspicion_level !== "string") {
+        throw new Error(t("analyze.errors.invalidResponse", { defaultValue: "Invalid response from server." }));
+      }
+
       setResult(res);
 
       // Guest: mark free run used, then force auth after a short delay
@@ -280,59 +293,23 @@ export default function AnalyzeScan() {
           });
       }
     } catch (e: any) {
-      setError(e.message || t("analyze.errors.analysisFailed"));
+      const msg = e?.message || "";
+      // Surface server validation errors (400) clearly
+      if (msg.includes("Could not decode image")) {
+        setError(t("analyze.errors.invalidImage", { defaultValue: "Could not process this file. Please upload a valid dental X-ray." }));
+      } else if (msg.includes("timed out") || msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+        setError(t("analyze.errors.network", { defaultValue: "Network error — check your connection and try again." }));
+      } else {
+        setError(msg || t("analyze.errors.analysisFailed"));
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const MODEL_DISPLAY: Record<string, string> = {
-    "pano_gpu2": "Panoramic",
-    "pano_caries_only_gpu2": "Panoramic",
-    "bitewing": "Bitewing",
-    "bitewing_caries_only": "Bitewing",
-    "potato": "Kiwi",
-    "pano_dc1000_potato": "Kiwi",
-  };
-
-  const modelOptions = useMemo(() => (
-    models.map((m) => {
-      const raw = m.name.toLowerCase();
-      const path = m.path.toLowerCase();
-
-      let label = m.name;
-      for (const [key, value] of Object.entries(MODEL_DISPLAY)) {
-        if (raw.includes(key) || path.includes(key)) {
-          label = value;
-          break;
-        }
-      }
-
-      return { value: m.path, label };
-    })
-  ), [models]);
-
-  const currentModelLabel = modelOptions.find((o) => o.value === selectedModel)?.label || "Panoramic";
   const isMobile = window.innerWidth <= 768;
 
-  const toolbarBtnStyle = (active: boolean = false): React.CSSProperties => ({
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "6px 10px",
-    borderRadius: 8,
-    fontSize: 12,
-    fontWeight: 500,
-    border: "1px solid var(--border-color)",
-    cursor: "pointer",
-    transition: "background 0.15s, color 0.15s, border-color 0.15s",
-    background: active ? "var(--color-leaf-subtle)" : "var(--color-surface)",
-    color: active ? "var(--color-leaf-text)" : "var(--color-ink-secondary)",
-    fontFamily: "var(--font-body)",
-  });
-
-  const isSavedScan = !!result && !file;
-  const isWelcome = !file && !result && !loading;
+  const isWelcome = !result && !loading;
 
   /* ───────── WELCOME STATE ───────── */
   if (isWelcome) {
@@ -539,9 +516,35 @@ export default function AnalyzeScan() {
             onMouseEnter={() => setInputFocused(true)}
             onMouseLeave={() => { if (!patientInputRef.current?.matches(":focus")) setInputFocused(false); }}
           >
-            <div style={{ padding: "20px 0 20px 20px", display: "flex", alignItems: "center" }}>
-              <Upload size={20} strokeWidth={1.5} style={{ color: "var(--color-ink-ghost)" }} />
-            </div>
+            {file && preview ? (
+              <motion.div
+                key="thumb"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.42, 0, 1, 1] }}
+                style={{ padding: "8px 0 8px 12px", display: "flex", alignItems: "center" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ width: 48, height: 48, borderRadius: 10, overflow: "hidden", flexShrink: 0, position: "relative" }}>
+                  <img src={preview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); clearFile(); }}
+                    style={{
+                      position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%",
+                      background: "rgba(0,0,0,0.55)", color: "white", border: "none", cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+                    }}
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <div style={{ padding: "20px 0 20px 20px", display: "flex", alignItems: "center" }}>
+                <Upload size={20} strokeWidth={1.5} style={{ color: "var(--color-ink-ghost)" }} />
+              </div>
+            )}
             <input
               ref={patientInputRef}
               type="text"
@@ -574,7 +577,8 @@ export default function AnalyzeScan() {
               transition={{ type: "spring", duration: 0.3, bounce: 0 }}
               onClick={(e) => {
                 e.stopPropagation();
-                inputRef.current?.click();
+                if (file) handleAnalyze();
+                else inputRef.current?.click();
               }}
               style={{
                 display: "flex",
@@ -584,8 +588,8 @@ export default function AnalyzeScan() {
                 margin: "8px 8px 8px 0",
                 borderRadius: 12,
                 border: "none",
-                background: "var(--color-surface-inset)",
-                color: "var(--color-ink-secondary)",
+                background: file ? "var(--color-leaf)" : "var(--color-surface-inset)",
+                color: file ? "white" : "var(--color-ink-secondary)",
                 fontSize: 14,
                 fontWeight: 500,
                 cursor: "pointer",
@@ -593,10 +597,10 @@ export default function AnalyzeScan() {
                 whiteSpace: "nowrap",
                 transition: "background 0.15s, color 0.15s",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-ink)"; e.currentTarget.style.color = "white"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-surface-inset)"; e.currentTarget.style.color = "var(--color-ink-secondary)"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = file ? "var(--color-leaf-dark, #1a5c3a)" : "var(--color-ink)"; e.currentTarget.style.color = "white"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = file ? "var(--color-leaf)" : "var(--color-surface-inset)"; e.currentTarget.style.color = file ? "white" : "var(--color-ink-secondary)"; }}
             >
-              {t("analyze.home.getStarted")}
+              {file ? t("analyze.analyze") : t("analyze.home.getStarted")}
               <Send size={14} />
             </motion.button>
           </div>
@@ -626,8 +630,36 @@ export default function AnalyzeScan() {
     );
   }
 
-  /* ───────── SAVED SCAN VIEW ───────── */
-  if (isSavedScan && result) {
+  /* ───────── LOADING STATE ───────── */
+  if (loading && !result) {
+    return (
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        minHeight: "calc(100vh - 200px)",
+      }}>
+        <AnimatePresence>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.42, 0, 1, 1] }}
+          >
+            <motion.img
+              src="/Cavio Logo.png"
+              alt="Loading"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              style={{ width: 56, height: 56 }}
+            />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  /* ───────── RESULT VIEW (saved or fresh scan) ───────── */
+  if (result) {
     const savedSuspicionColor = {
       low: { bg: "var(--color-low-bg)", text: "var(--color-low)" },
       moderate: { bg: "var(--color-moderate-bg)", text: "var(--color-moderate)" },
@@ -747,7 +779,7 @@ export default function AnalyzeScan() {
             overflow: "hidden",
             boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
           }}>
-            {resultImageError ? (
+            {resultImageError && !preview ? (
               <div style={{
                 width: "100%", minHeight: 260, display: "flex",
                 flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -767,11 +799,10 @@ export default function AnalyzeScan() {
               </div>
             ) : (
               <img
-                src={result.annotated_image_url}
+                src={resultImageError ? preview! : (result.annotated_image_url || preview || "")}
                 alt={`${patientName || t("analyze.unnamedPatient")} ${result.modality}`}
                 style={{ width: "100%", display: "block" }}
-                onLoad={() => setResultImageError(false)}
-                onError={() => setResultImageError(true)}
+                onError={() => { if (!resultImageError) setResultImageError(true); }}
               />
             )}
           </div>
@@ -801,572 +832,6 @@ export default function AnalyzeScan() {
     );
   }
 
-  /* ───────── ACTIVE STATE (file selected, loading, or fresh result) ───────── */
-
-  const suspicionColor = result ? {
-    low: { bg: "var(--color-low-bg)", text: "var(--color-low)" },
-    moderate: { bg: "var(--color-moderate-bg)", text: "var(--color-moderate)" },
-    high: { bg: "var(--color-high-bg)", text: "var(--color-high)" },
-    review: { bg: "var(--color-review-bg)", text: "var(--color-review)" },
-  }[result.suspicion_level.toLowerCase()] || { bg: "var(--color-low-bg)", text: "var(--color-low)" } : null;
-
-  return (
-    <div style={{
-      flex: 1,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: result ? "flex-start" : "center",
-      padding: isMobile ? "20px 16px 24px" : "40px 32px 24px",
-      maxWidth: 900,
-      width: "100%",
-      margin: "0 auto",
-      minHeight: 0,
-    }}>
-      {/* Header */}
-      {result ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          style={{ width: "100%", marginBottom: 28 }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 6 }}>
-            <img src="/Cavio Logo.png" alt="Cavio" style={{ width: 28, height: 28, flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{
-                fontFamily: "var(--font-display)", fontSize: isMobile ? 24 : 30,
-                fontWeight: 400, color: "var(--color-ink)", margin: 0, lineHeight: 1.2,
-              }}>
-                {patientName || t("analyze.scanAnalysis")}
-              </h1>
-              <p style={{
-                fontSize: 13, color: "var(--color-ink-tertiary)", margin: "2px 0 0",
-                fontFamily: "var(--font-body)",
-              }}>
-                {result.modality} &middot; {result.model_name} &middot; {result.num_detections} {result.num_detections !== 1 ? t("analyze.findings") : t("analyze.finding")}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      ) : (
-        <div style={{
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          alignItems: isMobile ? "stretch" : "baseline",
-          gap: isMobile ? 12 : 24,
-          width: "100%",
-          marginBottom: 24,
-        }}>
-          <h1 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: isMobile ? 22 : 26,
-            fontWeight: 400,
-            color: "var(--color-ink)",
-            whiteSpace: "nowrap",
-            margin: 0,
-          }}>
-            {t("analyze.analyzeXray")}
-          </h1>
-          <input
-            style={{
-              flex: 1, padding: "8px 14px", background: "transparent",
-              border: "1px solid var(--border-color)", borderRadius: 8,
-              fontSize: 14, fontFamily: "var(--font-body)", color: "var(--color-ink)",
-              outline: "none", transition: "border-color 0.15s",
-            }}
-            type="text"
-            placeholder={t("analyze.patientNameOptional")}
-            value={patientName}
-            onChange={(e) => setPatientName(e.target.value)}
-            onFocus={(e) => e.currentTarget.style.borderColor = "var(--color-leaf)"}
-            onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
-          />
-        </div>
-      )}
-
-      {/* Summary stat cards — shown when result exists */}
-      {result && suspicionColor && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.08, ease: "easeOut" }}
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
-            gap: 10,
-            width: "100%",
-            marginBottom: 20,
-          }}
-        >
-          {/* Suspicion */}
-          <div style={{
-            background: suspicionColor.bg,
-            borderRadius: 14,
-            padding: "16px 18px",
-            display: "flex", flexDirection: "column", gap: 4,
-          }}>
-            <span style={{ fontSize: 11, fontWeight: 500, color: suspicionColor.text, textTransform: "uppercase", letterSpacing: "0.04em", fontFamily: "var(--font-body)", opacity: 0.8 }}>
-              Suspicion
-            </span>
-            <span style={{ fontSize: 20, fontWeight: 600, color: suspicionColor.text, fontFamily: "var(--font-display)", lineHeight: 1.2 }}>
-              {result.suspicion_level}
-            </span>
-          </div>
-          {/* Confidence */}
-          <div style={{
-            background: "var(--color-surface)",
-            borderRadius: 14,
-            padding: "16px 18px",
-            boxShadow: "0 0 0 1px rgba(45, 42, 36, 0.06), 0 1px 2px rgba(0,0,0,0.03)",
-            display: "flex", flexDirection: "column", gap: 4,
-          }}>
-            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--color-ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.04em", fontFamily: "var(--font-body)" }}>
-              Confidence
-            </span>
-            <span style={{ fontSize: 20, fontWeight: 600, color: "var(--color-ink)", fontFamily: "var(--font-display)", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
-              {(result.overall_confidence * 100).toFixed(0)}%
-            </span>
-          </div>
-          {/* Detections */}
-          <div style={{
-            background: "var(--color-surface)",
-            borderRadius: 14,
-            padding: "16px 18px",
-            boxShadow: "0 0 0 1px rgba(45, 42, 36, 0.06), 0 1px 2px rgba(0,0,0,0.03)",
-            display: "flex", flexDirection: "column", gap: 4,
-          }}>
-            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--color-ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.04em", fontFamily: "var(--font-body)" }}>
-              Findings
-            </span>
-            <span style={{ fontSize: 20, fontWeight: 600, color: "var(--color-ink)", fontFamily: "var(--font-display)", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
-              {result.num_detections}
-            </span>
-          </div>
-          {/* Turnaround */}
-          <div style={{
-            background: "var(--color-surface)",
-            borderRadius: 14,
-            padding: "16px 18px",
-            boxShadow: "0 0 0 1px rgba(45, 42, 36, 0.06), 0 1px 2px rgba(0,0,0,0.03)",
-            display: "flex", flexDirection: "column", gap: 4,
-          }}>
-            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--color-ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.04em", fontFamily: "var(--font-body)" }}>
-              Speed
-            </span>
-            <span style={{ fontSize: 20, fontWeight: 600, color: "var(--color-ink)", fontFamily: "var(--font-display)", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
-              {result.turnaround_s?.toFixed(1) || "—"}s
-            </span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Upload / Image area */}
-      <div style={{ width: "100%", marginBottom: result ? 24 : 16 }}>
-        {!file && !result ? (
-          <div
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-            style={{
-              width: "100%",
-              border: `1.5px dashed ${dragOver ? "var(--color-leaf)" : "var(--border-emphasis)"}`,
-              borderRadius: 14,
-              padding: isMobile ? "40px 20px" : "56px 32px",
-              textAlign: "center",
-              cursor: "pointer",
-              transition: "border-color 0.2s, background 0.2s",
-              background: dragOver ? "var(--color-leaf-subtle)" : "var(--color-surface)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Upload size={36} strokeWidth={1.5} style={{ color: "var(--color-ink-ghost)", marginBottom: 10 }} />
-            <div style={{ fontSize: 15, color: "var(--color-ink-secondary)" }}>
-              Drag an X-ray here, or click to select
-            </div>
-            <div style={{ fontSize: 12, color: "var(--color-ink-tertiary)", marginTop: 4 }}>
-              JPG, PNG, BMP, TIFF
-            </div>
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            style={{ position: "relative" }}
-            className="group"
-          >
-            <div style={{
-              width: "100%",
-              background: "#111",
-              borderRadius: 16,
-              overflow: "hidden",
-              boxShadow: result
-                ? "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)"
-                : "0 1px 4px rgba(0,0,0,0.08)",
-            }}>
-              {result && resultImageError ? (
-                <div style={{
-                  width: "100%", minHeight: 260, display: "flex",
-                  alignItems: "center", justifyContent: "center",
-                  color: "rgba(255,255,255,0.75)", fontSize: 14, padding: 24, textAlign: "center",
-                }}>
-                  Saved image is unavailable (404). Please re-analyze this patient.
-                </div>
-              ) : (
-                <img
-                  src={result ? result.annotated_image_url : preview!}
-                  alt="X-ray"
-                  style={{ width: "100%", display: "block", outline: "1px solid rgba(255,255,255,0.04)", outlineOffset: -1 }}
-                  onLoad={() => setResultImageError(false)}
-                  onError={() => { if (result) setResultImageError(true); }}
-                />
-              )}
-            </div>
-            {!loading && !isSavedScan && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={clearFile}
-                className="opacity-0 group-hover:opacity-100"
-                style={{
-                  position: "absolute", top: 10, right: 10, width: 36, height: 36,
-                  borderRadius: "50%", background: "rgba(0,0,0,0.55)", color: "white",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  border: "none", cursor: "pointer",
-                  transition: "opacity 0.2s, background 0.15s, transform 0.15s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.75)"; e.currentTarget.style.transform = "scale(1.06)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.55)"; e.currentTarget.style.transform = "scale(1)"; }}
-              >
-                <X size={14} />
-              </motion.button>
-            )}
-            {!result && (
-              <div style={{
-                position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 18px",
-                background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)",
-                borderRadius: "0 0 16px 16px", display: "flex", alignItems: "center", justifyContent: "space-between",
-              }}>
-                <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginRight: 12 }}>
-                  {file?.name || "Scan"}
-                </span>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
-                  transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                  onClick={handleAnalyze}
-                  disabled={loading}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6, padding: "8px 18px",
-                    borderRadius: 8, fontSize: 13, fontWeight: 500, border: "none",
-                    cursor: loading ? "default" : "pointer",
-                    transition: "background 0.15s, color 0.15s",
-                    background: loading ? "rgba(255,255,255,0.2)" : "var(--color-leaf)",
-                    color: loading ? "rgba(255,255,255,0.6)" : "white", flexShrink: 0,
-                  }}
-                >
-                  {loading ? (<><Loader2 size={14} className="animate-spin" /> {LOADING_MESSAGES[loadingMsg]}</>) : t("analyze.analyze")}
-                </motion.button>
-              </div>
-            )}
-          </motion.div>
-        )}
-        <input
-          ref={inputRef}
-          type="file"
-          accept={ACCEPT}
-          hidden
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) handleFile(f);
-            e.currentTarget.value = "";
-          }}
-        />
-      </div>
-
-      {/* Settings toolbar — hidden when viewing saved result (no file) */}
-      {(file || !result) && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", marginBottom: 20, flexWrap: "wrap" }}>
-          {isMobile ? (
-            <button
-              style={toolbarBtnStyle(modelDrawerOpen)}
-              onClick={() => {
-                setOpenPopover(null);
-                setModelDrawerOpen(true);
-              }}
-            >
-              <Layers size={13} />
-              {currentModelLabel}
-            </button>
-          ) : (
-            <SelectPrimitive.Root value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectPrimitive.Trigger style={toolbarBtnStyle()}>
-                <Layers size={13} />
-                <SelectPrimitive.Value>{currentModelLabel}</SelectPrimitive.Value>
-              </SelectPrimitive.Trigger>
-              <SelectPrimitive.Portal>
-                <SelectPrimitive.Content
-                  style={{
-                    background: "var(--color-surface)",
-                    border: "1px solid var(--border-emphasis)",
-                    borderRadius: 10,
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                    overflow: "hidden",
-                    zIndex: 100,
-                    minWidth: 180,
-                  }}
-                  position="popper"
-                  sideOffset={6}
-                  side="bottom"
-                  align="start"
-                >
-                  <SelectPrimitive.Viewport style={{ padding: 4 }}>
-                    {modelOptions.map(opt => (
-                      <SelectPrimitive.Item
-                        key={opt.value}
-                        value={opt.value}
-                        style={{
-                          padding: "7px 12px",
-                          fontSize: 13,
-                          color: "var(--color-ink)",
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          outline: "none",
-                          transition: "background 0.1s",
-                        }}
-                        className="data-[highlighted]:bg-leaf-subtle"
-                      >
-                        <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
-                      </SelectPrimitive.Item>
-                    ))}
-                  </SelectPrimitive.Viewport>
-                </SelectPrimitive.Content>
-              </SelectPrimitive.Portal>
-            </SelectPrimitive.Root>
-          )}
-
-          <div style={{ position: "relative" }}>
-            <button
-              style={toolbarBtnStyle(openPopover === "conf")}
-              onClick={() => setOpenPopover(openPopover === "conf" ? null : "conf")}
-            >
-              <Gauge size={13} />
-              <span style={{ fontVariantNumeric: "tabular-nums" }}>{Math.round(conf * 100)}%</span>
-            </button>
-            {openPopover === "conf" && (
-              <>
-                <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpenPopover(null)} />
-                <div style={{
-                  position: "absolute",
-                  top: "calc(100% + 6px)",
-                  left: 0,
-                  background: "var(--color-surface)",
-                  border: "1px solid var(--border-emphasis)",
-                  borderRadius: 10,
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                  padding: 16,
-                  zIndex: 50,
-                  width: 220,
-                }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: "var(--color-ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 10, fontFamily: "var(--font-display)" }}>
-                    {t("analyze.confidenceThreshold")}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <SliderPrimitive.Root
-                      value={[conf]}
-                      onValueChange={([v]) => setConf(v)}
-                      min={0.05}
-                      max={0.95}
-                      step={0.05}
-                      style={{ position: "relative", display: "flex", alignItems: "center", flex: 1, height: 20, userSelect: "none", touchAction: "none" }}
-                    >
-                      <SliderPrimitive.Track style={{ position: "relative", height: 3, width: "100%", borderRadius: 9999, background: "var(--color-surface-inset)", flexGrow: 1 }}>
-                        <SliderPrimitive.Range style={{ position: "absolute", height: "100%", borderRadius: 9999, background: "var(--color-leaf)" }} />
-                      </SliderPrimitive.Track>
-                      <SliderPrimitive.Thumb style={{ display: "block", width: 16, height: 16, borderRadius: "50%", background: "white", border: "2px solid var(--color-leaf)", boxShadow: "0 1px 3px rgba(0,0,0,0.12)", cursor: "pointer", outline: "none" }} />
-                    </SliderPrimitive.Root>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: "var(--color-ink)", fontFamily: "var(--font-body)", minWidth: 36, textAlign: "right" }}>
-                      {Math.round(conf * 100)}%
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          <button
-            onClick={() => setToothAssign(!toothAssign)}
-            style={toolbarBtnStyle(toothAssign)}
-            title={t("analyze.toothAssignment")}
-          >
-            <Waypoints size={13} />
-            {t("analyze.tooth")}
-          </button>
-
-          {file && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-              onClick={handleAnalyze}
-              disabled={loading}
-              style={{
-                ...toolbarBtnStyle(false),
-                background: loading ? "var(--color-surface-inset)" : "var(--color-leaf)",
-                color: loading ? "var(--color-ink-tertiary)" : "white",
-                border: "none",
-                fontWeight: 600,
-              }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={13} className="animate-spin" />
-                  {LOADING_MESSAGES[loadingMsg]}
-                </>
-              ) : result ? t("analyze.analyzeAgain") : t("analyze.analyze")}
-            </motion.button>
-          )}
-        </div>
-      )}
-
-      <AnimatePresence>
-        {isMobile && modelDrawerOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 60 }}
-              onClick={() => setModelDrawerOpen(false)}
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 280, damping: 32 }}
-              style={{
-                position: "fixed",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: "var(--color-surface)",
-                borderRadius: "16px 16px 0 0",
-                maxHeight: "70vh",
-                overflowY: "auto",
-                zIndex: 61,
-                paddingBottom: "env(safe-area-inset-bottom, 0px)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 4px" }}>
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "var(--color-ink-ghost)" }} />
-              </div>
-              <div style={{ padding: "8px 16px 16px" }}>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 500, color: "var(--color-ink)", marginBottom: 10 }}>
-                  {t("analyze.modelsTitle", { defaultValue: "Modele" })}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {modelOptions.map((opt) => {
-                    const active = opt.value === selectedModel;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => {
-                          setSelectedModel(opt.value);
-                          setModelDrawerOpen(false);
-                        }}
-                        style={{
-                          width: "100%",
-                          textAlign: "left",
-                          border: "none",
-                          borderRadius: 8,
-                          padding: "10px 12px",
-                          cursor: "pointer",
-                          background: active ? "var(--color-leaf-subtle)" : "transparent",
-                          color: active ? "var(--color-leaf-text)" : "var(--color-ink)",
-                          fontSize: 14,
-                          fontWeight: active ? 600 : 500,
-                          fontFamily: "var(--font-body)",
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Error */}
-      {error && (
-        <div style={{ color: "var(--color-high)", fontWeight: 500, fontSize: 13, marginBottom: 12, width: "100%" }}>
-          {error}
-        </div>
-      )}
-
-      {/* Results — findings table with polished wrapper */}
-      {result && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          style={{ width: "100%" }}
-        >
-          {result.detections.length > 0 ? (
-            <div>
-              <div style={{
-                fontSize: 11, fontWeight: 500, color: "var(--color-ink-tertiary)",
-                textTransform: "uppercase", letterSpacing: "0.04em",
-                fontFamily: "var(--font-body)", marginBottom: 10,
-              }}>
-                Detailed Findings
-              </div>
-              <FindingsTable detections={result.detections} />
-            </div>
-          ) : (
-            <div style={{
-              background: "var(--color-surface)",
-              borderRadius: 14,
-              padding: "32px 24px",
-              textAlign: "center",
-              boxShadow: "0 0 0 1px rgba(45, 42, 36, 0.06), 0 1px 2px rgba(0,0,0,0.03)",
-            }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>&#10003;</div>
-              <div style={{ fontSize: 15, fontWeight: 500, color: "var(--color-ink)", fontFamily: "var(--font-body)" }}>
-                No findings detected
-              </div>
-              <div style={{ fontSize: 13, color: "var(--color-ink-tertiary)", marginTop: 4, fontFamily: "var(--font-body)" }}>
-                The analysis did not identify any notable pathology in this radiograph.
-              </div>
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* HIPAA footer on result page */}
-      {result && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            fontSize: 11, color: "var(--color-ink-ghost)",
-            marginTop: 32, paddingBottom: 16,
-          }}
-        >
-          <Shield size={12} />
-          {t("analyze.aiDisclaimer", { defaultValue: "Suport AI — nu înlocuiește diagnosticul clinic" })}
-        </motion.div>
-      )}
-    </div>
-  );
+  /* No more active state — all results use the unified result view above */
+  return null;
 }
