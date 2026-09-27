@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,7 +26,6 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@notra/ui/components/ui/sidebar";
-import { Button } from "@notra/ui/components/ui/button";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { cn } from "@notra/ui/lib/utils";
 
@@ -122,11 +121,11 @@ export default function Layout({ children }: Props) {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   tooltip={t("layout.nav.newScan")}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground cursor-pointer"
                   onClick={handleNewScan}
                 >
-                  <Plus className="size-4" />
-                  <span>{t("layout.nav.newScan")}</span>
+                  <Plus className="size-4 pointer-events-none" />
+                  <span className="pointer-events-none">{t("layout.nav.newScan")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -149,18 +148,18 @@ export default function Layout({ children }: Props) {
                           type="button"
                           isActive={selectedPatient === p.name}
                           tooltip={p.name}
-                          className="relative z-10"
+                          className="relative z-10 cursor-pointer"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             handlePatientClick(p.name);
                           }}
                         >
-                          <MessageCircle className="size-4" />
-                          <span className="truncate">{p.name}</span>
+                          <MessageCircle className="size-4 pointer-events-none" />
+                          <span className="truncate pointer-events-none">{p.name}</span>
                           <SidebarMenuBadge>
                             <span
-                              className="size-1.5 rounded-full"
+                              className="size-1.5 rounded-full pointer-events-none"
                               style={{ background: suspicionDotColor(p.worst_suspicion) }}
                             />
                           </SidebarMenuBadge>
@@ -173,10 +172,11 @@ export default function Layout({ children }: Props) {
                       <SidebarMenuButton
                         isActive={location.pathname.startsWith("/history")}
                         tooltip={t("layout.nav.viewAll")}
+                        className="cursor-pointer"
                         onClick={() => navigate("/history")}
                       >
-                        <History className="size-4" />
-                        <span>{t("layout.nav.viewAll")}</span>
+                        <History className="size-4 pointer-events-none" />
+                        <span className="pointer-events-none">{t("layout.nav.viewAll")}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ) : null}
@@ -192,25 +192,31 @@ export default function Layout({ children }: Props) {
                 <SidebarMenuButton
                   isActive={settingsOpen}
                   tooltip={t("layout.nav.settings")}
+                  className="cursor-pointer"
                   onClick={() => openSettings()}
                 >
-                  <Settings className="size-4" />
-                  <span>{t("layout.nav.settings")}</span>
+                  <Settings className="size-4 pointer-events-none" />
+                  <span className="pointer-events-none">{t("layout.nav.settings")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   tooltip={t("layout.nav.help")}
+                  className="cursor-pointer"
                   onClick={() => window.open("mailto:hello@cavio.ai", "_blank")}
                 >
-                  <HelpCircle className="size-4" />
-                  <span>{t("layout.nav.help")}</span>
+                  <HelpCircle className="size-4 pointer-events-none" />
+                  <span className="pointer-events-none">{t("layout.nav.help")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip={t("layout.nav.logout")} onClick={() => logout()}>
-                  <LogOut className="size-4" />
-                  <span>{t("layout.nav.logout")}</span>
+                <SidebarMenuButton
+                  tooltip={t("layout.nav.logout")}
+                  className="cursor-pointer"
+                  onClick={() => logout()}
+                >
+                  <LogOut className="size-4 pointer-events-none" />
+                  <span className="pointer-events-none">{t("layout.nav.logout")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
