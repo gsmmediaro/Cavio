@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Upload, X, Send, Pencil, ArrowLeft, Download } from "lucide-react";
+import { Upload, X, ArrowUp, Pencil, ArrowLeft, Download } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -17,6 +17,17 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Badge } from "../components/ui/badge";
+import { cn } from "../lib/utils";
+import { toast } from "sonner";
+import {
+  AnalyzingIndicator,
+  AnalyzeResultSkeleton,
+  ChatAssistantBlock,
+  ChatUserBubble,
+  ErrorBanner,
+} from "../components/chat/notra-chat-states";
 
 const ACCEPT = ".jpg,.jpeg,.png,.bmp,.tiff,.tif";
 
@@ -68,6 +79,7 @@ export default function AnalyzeScan() {
   const [selectedModel, setSelectedModel] = useState("");
   const [conf, setConf] = useState(0.5);
   const [toothAssign, setToothAssign] = useState(false);
+  const [modality, setModality] = useState<"Panoramic" | "Bitewing">("Panoramic");
   const [patientName, setPatientName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -100,15 +112,16 @@ export default function AnalyzeScan() {
   }, []);
 
   useEffect(() => {
-    if (!models.length || selectedModel) return;
-
-    const preferred = models.find((m) => {
+    if (!models.length) return;
+    const wantBite = modality === "Bitewing";
+    const match = models.find((m) => {
       const raw = `${m.name} ${m.path}`.toLowerCase();
-      return raw.includes("pano_gpu2") || raw.includes("pano_caries_only_gpu2");
+      const isBite = raw.includes("bite");
+      return wantBite ? isBite : (raw.includes("pano_gpu2") || raw.includes("pano_caries_only_gpu2") || !isBite);
     });
-
-    setSelectedModel(preferred?.path || models[0].path);
-  }, [models, selectedModel]);
+    const next = match?.path || models[0].path;
+    if (next !== selectedModel) setSelectedModel(next);
+  }, [models, modality]);
 
   useEffect(() => {
     if (!file) { setPreview(null); return; }
@@ -254,7 +267,7 @@ export default function AnalyzeScan() {
         file,
         selectedModel,
         conf,
-        selectedModel.toLowerCase().includes("bitewing") ? "Bitewing" : "Panoramic",
+        modality,
         toothAssign,
         patientName,
       );
@@ -314,6 +327,7 @@ export default function AnalyzeScan() {
       } else {
         setError(msg || t("analyze.errors.analysisFailed"));
       }
+      toast.error(msg || t("analyze.errors.analysisFailed"), { description: "Cavio could not finish this scan." });
     } finally {
       setLoading(false);
     }
@@ -503,43 +517,24 @@ export default function AnalyzeScan() {
           </motion.div>
         )}
 
-        {/* Upload input box */}
+        {/* Notra-style chat composer */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
-          style={{ width: "100%", maxWidth: 680, marginBottom: 16 }}
+          className="mb-4 w-full max-w-[680px]"
         >
           <div
-            onClick={() => inputRef.current?.click()}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "var(--color-surface)",
-              borderRadius: 18,
-              border: "none",
-              boxShadow: inputFocused
-                ? "0 0 0 1px rgba(45, 42, 36, 0.18), 0 2px 4px rgba(0,0,0,0.04), 0 6px 16px rgba(0,0,0,0.03)"
-                : "0 0 0 1px rgba(45, 42, 36, 0.06), 0 2px 4px rgba(0,0,0,0.04), 0 6px 16px rgba(0,0,0,0.03)",
-              transition: "box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1)",
-              cursor: "pointer",
-              overflow: "hidden",
-            }}
-            onMouseEnter={() => setInputFocused(true)}
-            onMouseLeave={() => { if (!patientInputRef.current?.matches(":focus")) setInputFocused(false); }}
+            className={cn(
+              "overflow-hidden rounded-2xl border border-border bg-background shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[box-shadow,border-color]",
+              inputFocused || dragOver ? "border-foreground/20 shadow-[0_0_0_1px_rgba(45,42,36,0.12),0_6px_16px_rgba(0,0,0,0.04)]" : "",
+            )}
+            onClick={() => patientInputRef.current?.focus()}
           >
-            {file && preview ? (
-              <motion.div
-                key="thumb"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.42, 0, 1, 1] }}
-                style={{ padding: "8px 0 8px 12px", display: "flex", alignItems: "center" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: 10, overflow: "hidden", flexShrink: 0, position: "relative" }}>
-                  <img src={preview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            {(file && preview) ? (
+              <div className="flex items-center gap-2 border-b border-border/60 px-3 pt-3">
+                <div className="relative size-14 overflow-hidden rounded-lg border border-border">
+                  <img src={preview} alt="Preview" className="size-full object-cover" />
                   <Button
                     type="button"
                     size="icon-xs"
@@ -550,68 +545,79 @@ export default function AnalyzeScan() {
                     <X size={10} />
                   </Button>
                 </div>
-              </motion.div>
-            ) : (
-              <div style={{ padding: "20px 0 20px 20px", display: "flex", alignItems: "center" }}>
-                <Upload size={20} strokeWidth={1.5} style={{ color: "var(--color-ink-ghost)" }} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-foreground">{file.name}</div>
+                  <div className="text-xs text-muted-foreground">{modality} · ready to analyze</div>
+                </div>
               </div>
-            )}
-            <Input
-              ref={patientInputRef}
-              type="text"
-              placeholder={t("analyze.home.inputPlaceholder")}
-              value={patientName}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => setPatientName(e.target.value)}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  inputRef.current?.click();
-                }
-              }}
-              className="h-auto flex-1 rounded-none border-0 bg-transparent px-3.5 py-5 text-base shadow-none focus-visible:ring-0 md:text-base"
-            />
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (file) handleAnalyze();
-                else inputRef.current?.click();
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "12px 22px",
-                margin: "8px 8px 8px 0",
-                borderRadius: 12,
-                border: "none",
-                background: file ? "var(--color-leaf)" : "var(--color-surface-inset)",
-                color: file ? "white" : "var(--color-ink-secondary)",
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: "pointer",
-                fontFamily: "var(--font-body)",
-                whiteSpace: "nowrap",
-                transition: "background 0.15s, color 0.15s",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = file ? "var(--color-leaf-dark, #1a5c3a)" : "var(--color-ink)"; e.currentTarget.style.color = "white"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = file ? "var(--color-leaf)" : "var(--color-surface-inset)"; e.currentTarget.style.color = file ? "white" : "var(--color-ink-secondary)"; }}
-            >
-              {file ? t("analyze.analyze") : t("analyze.home.getStarted")}
-              <Send size={14} />
-            </motion.button>
+            ) : null}
+
+            <div className="flex items-end gap-2 px-3 pt-3">
+              <Input
+                ref={patientInputRef}
+                type="text"
+                placeholder={t("analyze.home.inputPlaceholder")}
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (file) void handleAnalyze();
+                    else inputRef.current?.click();
+                  }
+                }}
+                className="h-auto flex-1 rounded-none border-0 bg-transparent px-1 py-2 text-base shadow-none focus-visible:ring-0 md:text-base"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 px-2.5 pb-2.5 pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 gap-1.5 px-2 text-muted-foreground"
+                onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+              >
+                <Upload size={14} />
+                <span className="text-xs">{file ? "Replace" : "Attach"}</span>
+              </Button>
+
+              <Tabs
+                value={modality}
+                onValueChange={(v) => setModality(v as "Panoramic" | "Bitewing")}
+              >
+                <TabsList variant="default" className="h-7">
+                  <TabsTrigger value="Panoramic" className="px-2.5 text-xs">Panoramic</TabsTrigger>
+                  <TabsTrigger value="Bitewing" className="px-2.5 text-xs">Bitewing</TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              <Button
+                type="button"
+                size="icon"
+                className={cn(
+                  "ml-auto size-7 shrink-0 rounded-full",
+                  file ? "bg-foreground text-background hover:bg-foreground/90" : "bg-muted text-muted-foreground",
+                )}
+                disabled={!file || loading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (file) void handleAnalyze();
+                }}
+                aria-label={file ? t("analyze.analyze") : t("analyze.home.getStarted")}
+              >
+                <ArrowUp size={14} />
+              </Button>
+            </div>
           </div>
         </motion.div>
 
-        {/* Error */}
+        {/* Error banner (Notra Alert) */}
         {error && (
-          <div style={{ color: "var(--color-high)", fontWeight: 500, fontSize: 13, marginTop: 12, textAlign: "center" }}>
-            {error}
+          <div className="mt-3 w-full max-w-[680px]">
+            <ErrorBanner title="Analysis issue" description={error} />
           </div>
         )}
 
@@ -632,30 +638,28 @@ export default function AnalyzeScan() {
     );
   }
 
-  /* ───────── LOADING STATE ───────── */
+  /* ───────── LOADING / STREAMING STATE (Notra shimmer) ───────── */
   if (loading && !result) {
     return (
-      <div style={{
-        flex: 1, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        minHeight: "calc(100vh - 200px)",
-      }}>
-        <AnimatePresence>
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.42, 0, 1, 1] }}
-          >
-            <motion.img
-              src="/Cavio Logo.png"
-              alt="Loading"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              style={{ width: 56, height: 56 }}
-            />
-          </motion.div>
-        </AnimatePresence>
+      <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-4 pb-8 pt-8 md:px-8 md:pt-12">
+        {(file && preview) || patientName ? (
+          <div className="mb-6">
+            <ChatUserBubble>
+              <div className="font-medium">{patientName || (file?.name ?? "Scan")}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{modality}</div>
+              {preview ? (
+                <div className="mt-3 overflow-hidden rounded-xl border border-border/50">
+                  <img src={preview} alt="" className="max-h-36 w-full object-cover" />
+                </div>
+              ) : null}
+            </ChatUserBubble>
+          </div>
+        ) : null}
+        <ChatAssistantBlock
+          reasoning={<AnalyzingIndicator label={t("analyze.analyzing", { defaultValue: "Analyzing scan…" })} />}
+        >
+          <AnalyzeResultSkeleton />
+        </ChatAssistantBlock>
       </div>
     );
   }
@@ -686,23 +690,8 @@ export default function AnalyzeScan() {
     };
 
     return (
-      <div style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: isMobile ? "24px 16px 32px" : "48px 32px 32px",
-        maxWidth: 800,
-        width: "100%",
-        margin: "0 auto",
-      }}>
-        {/* Back button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          style={{ width: "100%", marginBottom: 20 }}
-        >
+      <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-4 pb-8 pt-6 md:px-8 md:pt-10">
+        <div className="mb-5 flex items-center gap-2">
           <Button
             type="button"
             variant="ghost"
@@ -713,81 +702,69 @@ export default function AnalyzeScan() {
             <ArrowLeft size={15} />
             {t("analyze.newScan")}
           </Button>
-        </motion.div>
+        </div>
 
-        {/* Logo + editable name */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 8, width: "100%" }}
-        >
-          <img src="/Cavio Logo.png" alt="Cavio" style={{ width: 28, height: 28, flexShrink: 0 }} />
-          <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-            <input
-              type="text"
-              value={patientName}
-              onChange={(e) => setPatientName(e.target.value)}
-              onBlur={handleNameBlur}
-              placeholder={t("analyze.unnamedPatient")}
-              style={{
-                fontFamily: "var(--font-display)", fontSize: isMobile ? 24 : 30,
-                fontWeight: 400, color: "var(--color-ink)", margin: 0, lineHeight: 1.2,
-                background: "transparent", border: "none", outline: "none",
-                padding: "2px 24px 2px 0", width: `${Math.max((patientName || t("analyze.unnamedPatient")).length, 10)}ch`,
-                borderBottom: "1px dashed transparent",
-                transition: "border-color 0.15s",
-              }}
-              onFocus={(e) => e.currentTarget.style.borderColor = "var(--border-emphasis)"}
-            />
-            <Pencil size={13} style={{
-              position: "absolute", right: 2, top: "50%", transform: "translateY(-50%)",
-              color: "var(--color-ink-ghost)", pointerEvents: "none",
-            }} />
-          </div>
-        </motion.div>
+        {/* Chat thread: user upload bubble */}
+        <div className="mb-6">
+          <ChatUserBubble>
+            <div className="mb-2 flex items-center gap-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  onBlur={handleNameBlur}
+                  placeholder={t("analyze.unnamedPatient")}
+                  className="bg-transparent font-display text-base outline-none md:text-lg"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    width: `${Math.max((patientName || t("analyze.unnamedPatient")).length, 10)}ch`,
+                    color: "var(--color-ink)",
+                  }}
+                />
+                <Pencil size={12} className="pointer-events-none absolute top-1/2 -right-4 -translate-y-1/2 text-muted-foreground" />
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {result.modality} · {result.filename || "scan"}
+            </div>
+            {(preview || result.annotated_image_url) && !resultImageError ? (
+              <div className="mt-3 overflow-hidden rounded-xl border border-border/60">
+                <img
+                  src={preview || result.annotated_image_url}
+                  alt="Uploaded scan"
+                  className="max-h-40 w-full object-cover"
+                />
+              </div>
+            ) : null}
+          </ChatUserBubble>
+        </div>
 
-        {/* Metadata subtitle */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.06 }}
-          style={{
-            fontSize: 13, color: "var(--color-ink-tertiary)", marginBottom: 20,
-            fontFamily: "var(--font-body)", textAlign: "center",
-          }}
+        {/* Assistant analysis message */}
+        <ChatAssistantBlock
+          className="mb-8 w-full"
+          reasoning={
+            <div className="flex items-center gap-2">
+              <img src="/Cavio Logo.png" alt="Cavio" className="size-6" />
+              <span className="text-sm font-medium text-foreground">Cavio</span>
+              <Badge
+                variant="secondary"
+                className="ml-1"
+                style={{ color: savedSuspicionColor.text, background: savedSuspicionColor.bg }}
+              >
+                {result.suspicion_level}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {result.num_detections} {result.num_detections !== 1 ? t("analyze.findings") : t("analyze.finding")}
+              </span>
+            </div>
+          }
         >
-          {result.modality} &middot; {result.num_detections} {result.num_detections !== 1 ? t("analyze.findings") : t("analyze.finding")} &middot;{" "}
-          <span style={{ color: savedSuspicionColor.text, fontWeight: 500 }}>{result.suspicion_level}</span>
-        </motion.p>
-
-        {/* Image */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          style={{ width: "100%", position: "relative" }}
-          className="group"
-        >
-          <div style={{
-            width: "100%",
-            background: "#111",
-            borderRadius: 16,
-            overflow: "hidden",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
-          }}>
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-[#111] shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
             {resultImageError && !preview ? (
-              <div style={{
-                width: "100%", minHeight: 260, display: "flex",
-                flexDirection: "column", alignItems: "center", justifyContent: "center",
-                color: "rgba(255,255,255,0.75)", fontSize: 14, padding: 32, textAlign: "center", gap: 12,
-              }}>
+              <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 p-8 text-center text-sm text-white/75">
                 <span>{t("analyze.savedImageUnavailable")}</span>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => navigate(`/analyze?new=${Date.now()}`)}
-                >
+                <Button type="button" size="sm" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
                   {t("analyze.startNewScan")}
                 </Button>
               </div>
@@ -795,38 +772,38 @@ export default function AnalyzeScan() {
               <img
                 src={resultImageError ? preview! : (result.annotated_image_url || preview || "")}
                 alt={`${patientName || t("analyze.unnamedPatient")} ${result.modality}`}
-                style={{ width: "100%", display: "block" }}
+                className="block w-full"
                 onError={() => { if (!resultImageError) setResultImageError(true); }}
               />
             )}
+            {!resultImageError && (
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                onClick={handleDownload}
+                aria-label={t("analyze.downloadImage")}
+                title={t("analyze.downloadImage")}
+                className="cavio-download-btn absolute right-3 bottom-3 z-[2] size-10 rounded-full border-0 bg-black/60 text-white hover:bg-black/80 hover:text-white"
+                style={{ touchAction: "manipulation" }}
+              >
+                <Download size={16} aria-hidden="true" />
+              </Button>
+            )}
           </div>
 
-          {/* Download — always reachable via keyboard/touch; hover polish on pointer devices */}
-          {!resultImageError && (
-            <Button
-              type="button"
-              size="icon"
-              variant="secondary"
-              onClick={handleDownload}
-              aria-label={t("analyze.downloadImage")}
-              title={t("analyze.downloadImage")}
-              className="cavio-download-btn absolute bottom-3 right-3 z-[2] size-10 rounded-full border-0 bg-black/60 text-white hover:bg-black/80 hover:text-white"
-              style={{ touchAction: "manipulation" }}
-            >
-              <Download size={16} aria-hidden="true" />
-            </Button>
-          )}
-        </motion.div>
-
-        {/* Findings table (incl. empty / zero detections) */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.14 }}
-          style={{ width: "100%", marginTop: 20 }}
-        >
           <FindingsTable detections={result.detections || []} />
-        </motion.div>
+        </ChatAssistantBlock>
+
+        {/* Sticky-ish follow-up composer cue */}
+        <div className="mt-auto rounded-2xl border border-border bg-background p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">Analyze another panoramic or bitewing.</p>
+            <Button size="sm" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
+              {t("analyze.newScan")}
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

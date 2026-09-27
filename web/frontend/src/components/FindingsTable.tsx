@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
+import { ChatEmptyState } from "./chat/notra-chat-states";
 
 function confVariant(confidence: number): "destructive" | "warning" | "secondary" {
   const pct = confidence * 100;
@@ -21,11 +22,12 @@ export default function FindingsTable({ detections }: { detections: Detection[] 
   if (detections.length === 0) {
     return (
       <Card className="w-full" role="status" aria-live="polite">
-        <CardContent className="py-7 text-center">
-          <div className="mb-1 text-sm font-medium text-foreground">No detections</div>
-          <div className="text-[13px] text-muted-foreground">
-            Zero findings on this scan. Review the image clinically as needed.
-          </div>
+        <CardContent className="py-2">
+          <ChatEmptyState
+            title="No detections"
+            description="Zero findings on this scan. Review the image clinically as needed."
+            className="p-6"
+          />
         </CardContent>
       </Card>
     );

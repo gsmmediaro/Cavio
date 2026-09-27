@@ -106,7 +106,8 @@ def _get_firebase_certs() -> dict:
 
 def _decode_firebase_token(token: str) -> AuthUser:
     settings = get_settings()
-    if not settings.firebase_project_id:
+    project_id = settings.firebase_project_id
+    if not project_id:
         raise HTTPException(
             status_code=401,
             detail="Firebase auth not configured on server",
@@ -114,6 +115,27 @@ def _decode_firebase_token(token: str) -> AuthUser:
     certs = _get_firebase_certs()
     if not certs:
         raise HTTPException(status_code=401, detail="Firebase certs unavailable")
+
+    # Fail fast on project mismatch before signature work — clearer than a
+    # generic "Invalid Firebase token" when Railway/Pages env diverge.
+    try:
+        unverified = jwt.decode(token, options={"verify_signature": False})
+    except jwt.PyJWTError as exc:
+        raise HTTPException(status_code=401, detail="Malformed Firebase token") from exc
+    token_aud = str(unverified.get("aud") or "")
+    if token_aud and token_aud != project_id:
+        logger.warning(
+            "Firebase project mismatch: token aud=%s server=%s",
+            token_aud,
+            project_id,
+        )
+        raise HTTPException(
+            status_code=401,
+            detail=(
+                f"Firebase project mismatch (token aud={token_aud}, "
+                f"server={project_id})"
+            ),
+        )
 
     from cryptography.x509 import load_pem_x509_certificate
 
@@ -136,8 +158,9 @@ def _decode_firebase_token(token: str) -> AuthUser:
                 token,
                 public_key,
                 algorithms=["RS256"],
-                audience=settings.firebase_project_id,
-                issuer=f"https://securetoken.google.com/{settings.firebase_project_id}",
+                audience=project_id,
+                issuer=f"https://securetoken.google.com/{project_id}",
+                leeway=60,
             )
             uid = str(payload.get("user_id") or payload.get("sub") or "")
             email = str(payload.get("email") or "")
@@ -150,6 +173,8 @@ def _decode_firebase_token(token: str) -> AuthUser:
         except ValueError as exc:
             last_error = exc
             continue
+    if last_error is not None:
+        logger.warning("Firebase token verify failed: %s", last_error)
     raise HTTPException(
         status_code=401,
         detail="Invalid Firebase token",

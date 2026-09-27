@@ -53,7 +53,8 @@
       "logout": "Deconectare",
       "signOut": "Ieșire din cont",
       "logIn": "Conectare",
-      "openMenu": "Deschide meniul"
+      "openMenu": "Deschide meniul",
+      "help": "Ajutor"
     },
     "patients": {
       "noPatients": "Nu există pacienți.",

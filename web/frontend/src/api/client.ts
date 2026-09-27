@@ -41,11 +41,11 @@ export function getLocalAccessToken(): string | null {
 }
 
 /** Prefer Firebase ID token; fall back to local JWT from /api/auth. */
-export async function getAccessToken(): Promise<string | null> {
+export async function getAccessToken(forceRefresh = false): Promise<string | null> {
   try {
     const { auth } = await import("../firebase");
     const u = auth.currentUser;
-    if (u) return await u.getIdToken();
+    if (u) return await u.getIdToken(forceRefresh);
   } catch {
     // firebase may be unconfigured in some local flows
   }
@@ -398,9 +398,28 @@ export interface CreditsInfo {
 }
 
 export async function getCredits(): Promise<CreditsInfo> {
-  const headers = await authHeaders();
-  const res = await fetch(build_api_url('/api/credits'), { headers });
-  if (!res.ok) throw new Error(await res.text());
+  const attempt = async (forceRefresh: boolean) => {
+    const token = await getAccessToken(forceRefresh);
+    const headers: Record<string, string> = token
+      ? { Authorization: "Bearer " + token }
+      : {};
+    return fetch(build_api_url("/api/credits"), { headers });
+  };
+  let res = await attempt(false);
+  if (res.status === 401) {
+    // Stale Firebase ID token → force refresh once
+    res = await attempt(true);
+  }
+  if (!res.ok) {
+    let detail = await res.text();
+    try {
+      const parsed = JSON.parse(detail);
+      if (parsed?.detail) detail = String(parsed.detail);
+    } catch {
+      /* keep raw */
+    }
+    throw new Error(detail || "Could not load credits");
+  }
   return res.json();
 }
 

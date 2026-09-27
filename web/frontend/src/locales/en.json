@@ -53,7 +53,8 @@
       "logout": "Log out",
       "signOut": "Sign out",
       "logIn": "Log in",
-      "openMenu": "Open menu"
+      "openMenu": "Open menu",
+      "help": "Help"
     },
     "patients": {
       "noPatients": "No patients yet.",
