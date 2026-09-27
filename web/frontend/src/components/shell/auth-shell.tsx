@@ -4,24 +4,41 @@ import { Link } from "react-router-dom";
 import { AuthBrandPanel } from "./auth-brand-panel";
 
 /**
- * Notra-style auth chrome adapted for Vite/Cavio:
- * split layout (form | brand panel), light-first, Cavio green brand wash.
- * Brand panel ambient effects mirror Notra AuthBrandPanel (CSS stand-in for
- * WebGL dither). Skips Next-only pieces (next/dynamic, next/font).
+ * Port of Notra AuthLayout / OnboardingSplitLayout from SOURCE:
+ * apps/dashboard/src/app/(auth)/layout.tsx
+ * apps/dashboard/src/components/onboarding/split-layout.tsx
+ * apps/dashboard/src/components/auth/auth-wordmark.tsx
+ *
+ * Cavio branding (name/logo/copy) kept; structure/classNames from source.
  */
 export function AuthShell({
   children,
+  mode = "auth",
   onClose,
 }: {
   children: ReactNode;
+  /** "auth" = Terms footer (auth layout). "onboarding" = spacer (split-layout). */
+  mode?: "auth" | "onboarding";
   onClose?: () => void;
 }) {
   return (
-    <div className="bg-background fixed inset-0 z-[1000] flex h-svh w-full justify-center lg:grid lg:grid-cols-2">
-      <section className="flex h-full min-h-0 w-full flex-col items-center justify-between px-6 py-5 lg:px-10 lg:py-6">
+    <div className="bg-background text-foreground fixed inset-0 z-[1000] flex h-svh w-full justify-center lg:grid lg:grid-cols-2">
+      <section
+        className={
+          mode === "onboarding"
+            ? "flex h-full min-h-0 w-full flex-col items-center justify-between overflow-y-auto px-6 py-5 lg:px-10 lg:py-6"
+            : "flex h-full min-h-0 w-full flex-col items-center justify-between px-6 py-5 lg:px-10 lg:py-6"
+        }
+      >
         <div className="flex w-full items-center justify-between self-stretch">
+          {/* AuthWordmark — source: flex items-center gap-2 self-start */}
           <Link to="/" className="flex items-center gap-2 self-start">
-            <img src="/Cavio Logo.png" alt="" className="size-9 rounded-lg" />
+            <span
+              aria-hidden="true"
+              className="flex size-10 shrink-0 items-center justify-center rounded-lg dark:bg-[#F6F3F1]"
+            >
+              <img src="/Cavio Logo.png" alt="" className="size-7" />
+            </span>
             <span className="text-foreground text-lg font-semibold tracking-tight">
               Cavio
             </span>
@@ -37,25 +54,39 @@ export function AuthShell({
           ) : null}
         </div>
 
-        <div className="w-full max-w-md">{children}</div>
+        <div
+          className={
+            mode === "onboarding"
+              ? "w-full max-w-md min-w-0 py-6"
+              : "w-full max-w-md"
+          }
+        >
+          {children}
+        </div>
 
-        <p className="text-muted-foreground px-8 text-center text-xs">
-          By continuing, you agree to our{" "}
-          <Link
-            className="hover:text-primary underline underline-offset-4"
-            to="/terms"
-          >
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link
-            className="hover:text-primary underline underline-offset-4"
-            to="/privacy"
-          >
-            Privacy Policy
-          </Link>
-          .
-        </p>
+        {mode === "auth" ? (
+          <div>
+            <p className="text-muted-foreground px-8 text-center text-xs">
+              By continuing, you agree to our{" "}
+              <Link
+                className="hover:text-primary underline underline-offset-4"
+                to="/terms"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                className="hover:text-primary underline underline-offset-4"
+                to="/privacy"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          </div>
+        ) : (
+          <div aria-hidden="true" className="h-7" />
+        )}
       </section>
 
       <div className="relative hidden lg:flex">

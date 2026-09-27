@@ -1,10 +1,23 @@
 import { useState } from "react";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, Loader2Icon, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
-import { useTranslation } from "react-i18next";
+
+import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
+import { CtaButton } from "@notra/ui/components/shared/cta-button";
+import { Input } from "@notra/ui/components/ui/input";
+import { Label } from "@notra/ui/components/ui/label";
+import { cn } from "@notra/ui/lib/utils";
+
+/**
+ * Cavio onboarding content for AuthShell mode="onboarding".
+ * Shell/brand panel match Notra OnboardingSplitLayout SOURCE.
+ * Form chrome mirrors workspace-form: AuthFormHeader + labeled fields + CtaButton.
+ */
 
 const SPECIALITIES = [
   "General dentist",
@@ -22,175 +35,123 @@ const ORG_SIZES = ["Solo", "2-5", "6-10", "10+"];
 
 type TranslatedOption = { value: string; label: string };
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 14px",
-  background: "transparent",
-  border: "1px solid var(--border-color)",
-  borderRadius: 8,
-  fontSize: 14,
-  fontFamily: "var(--font-body)",
-  color: "var(--color-ink)",
-  outline: "none",
-  transition: "border-color 0.15s",
-};
-
-const primaryBtnStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "11px 0",
-  background: "var(--color-leaf)",
-  color: "white",
-  border: "none",
-  borderRadius: 8,
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-  fontFamily: "var(--font-body)",
-  transition: "background 0.15s",
-};
-
-const triggerStyle = (hasValue: boolean): React.CSSProperties => ({
-  width: "100%",
-  padding: "10px 14px",
-  paddingRight: 36,
-  background: "transparent",
-  border: "1px solid var(--border-color)",
-  borderRadius: 8,
-  fontSize: 14,
-  fontFamily: "var(--font-body)",
-  color: hasValue ? "var(--color-ink)" : "var(--color-ink-tertiary)",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  textAlign: "left",
-  transition: "border-color 0.15s",
-});
-
-const contentStyle: React.CSSProperties = {
-  background: "var(--color-surface)",
-  border: "1px solid var(--border-emphasis)",
-  borderRadius: 10,
-  boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-  overflow: "hidden",
-  zIndex: 1100,
-  minWidth: "var(--radix-select-trigger-width)",
-};
-
-const itemStyle: React.CSSProperties = {
-  padding: "8px 14px",
-  fontSize: 13,
-  color: "var(--color-ink)",
-  borderRadius: 6,
-  cursor: "pointer",
-  outline: "none",
-  transition: "background 0.1s",
-  fontFamily: "var(--font-body)",
-};
-
 function StyledSelect({
   value,
   onValueChange,
   placeholder,
   options,
+  id,
+  label,
 }: {
   value: string;
   onValueChange: (v: string) => void;
   placeholder: string;
   options: TranslatedOption[];
+  id: string;
+  label: string;
 }) {
   const selectedLabel = options.find((o) => o.value === value)?.label;
   return (
-    <SelectPrimitive.Root value={value || undefined} onValueChange={onValueChange}>
-      <SelectPrimitive.Trigger style={triggerStyle(!!value)}>
-        <SelectPrimitive.Value placeholder={placeholder}>
-          {selectedLabel}
-        </SelectPrimitive.Value>
-        <SelectPrimitive.Icon>
-          <ChevronDown size={14} style={{ color: "var(--color-ink-tertiary)" }} />
-        </SelectPrimitive.Icon>
-      </SelectPrimitive.Trigger>
-      <SelectPrimitive.Portal>
-        <SelectPrimitive.Content
-          style={contentStyle}
-          position="popper"
-          sideOffset={6}
-          side="bottom"
-          align="start"
+    <div className="grid gap-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <SelectPrimitive.Root value={value || undefined} onValueChange={onValueChange}>
+        <SelectPrimitive.Trigger
+          id={id}
+          className={cn(
+            "border-input bg-transparent flex h-11 w-full items-center justify-between rounded-xl border px-4 text-base outline-none",
+            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+            value ? "text-foreground" : "text-muted-foreground",
+          )}
         >
-          <SelectPrimitive.Viewport style={{ padding: 4 }}>
-            {options.map((opt) => (
-              <SelectPrimitive.Item
-                key={opt.value}
-                value={opt.value}
-                style={itemStyle}
-                className="data-[highlighted]:bg-leaf-subtle"
-              >
-                <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
-              </SelectPrimitive.Item>
-            ))}
-          </SelectPrimitive.Viewport>
-        </SelectPrimitive.Content>
-      </SelectPrimitive.Portal>
-    </SelectPrimitive.Root>
+          <SelectPrimitive.Value placeholder={placeholder}>
+            {selectedLabel}
+          </SelectPrimitive.Value>
+          <SelectPrimitive.Icon>
+            <ChevronDown className="text-muted-foreground size-4" />
+          </SelectPrimitive.Icon>
+        </SelectPrimitive.Trigger>
+        <SelectPrimitive.Portal>
+          <SelectPrimitive.Content
+            className="bg-popover text-popover-foreground z-[1100] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl border shadow-md"
+            position="popper"
+            sideOffset={6}
+            side="bottom"
+            align="start"
+          >
+            <SelectPrimitive.Viewport className="p-1">
+              {options.map((opt) => (
+                <SelectPrimitive.Item
+                  key={opt.value}
+                  value={opt.value}
+                  className="data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground relative flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm outline-none"
+                >
+                  <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
+                </SelectPrimitive.Item>
+              ))}
+            </SelectPrimitive.Viewport>
+          </SelectPrimitive.Content>
+        </SelectPrimitive.Portal>
+      </SelectPrimitive.Root>
+    </div>
   );
 }
 
 function TermsContent() {
   const { t } = useTranslation();
-  const h2: React.CSSProperties = {
-    fontSize: 15,
-    fontWeight: 600,
-    marginTop: 20,
-    marginBottom: 6,
-    fontFamily: "var(--font-display)",
-  };
-  const p: React.CSSProperties = { fontSize: 13, color: "var(--color-ink-secondary)", marginBottom: 12, lineHeight: 1.65 };
   return (
-    <>
-      <h2 style={h2}>{t("onboarding.termsContent.s1h")}</h2>
-      <p style={p}>{t("onboarding.termsContent.s1p")}</p>
-      <h2 style={h2}>{t("onboarding.termsContent.s2h")}</h2>
-      <p style={p}>{t("onboarding.termsContent.s2p")}</p>
-      <h2 style={h2}>{t("onboarding.termsContent.s3h")}</h2>
-      <p style={p}>{t("onboarding.termsContent.s3p")}</p>
-      <h2 style={h2}>{t("onboarding.termsContent.s4h")}</h2>
-      <p style={p}>{t("onboarding.termsContent.s4p")}</p>
-      <h2 style={h2}>{t("onboarding.termsContent.s5h")}</h2>
-      <p style={p}>{t("onboarding.termsContent.s5p")}</p>
-      <h2 style={h2}>{t("onboarding.termsContent.s6h")}</h2>
-      <p style={p}>{t("onboarding.termsContent.s6p")}</p>
-      <h2 style={h2}>{t("onboarding.termsContent.s7h")}</h2>
-      <p style={p}>{t("onboarding.termsContent.s7p")}</p>
-    </>
+    <div className="text-muted-foreground space-y-3 text-sm">
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.termsContent.s1h")}</h2>
+      <p>{t("onboarding.termsContent.s1p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.termsContent.s2h")}</h2>
+      <p>{t("onboarding.termsContent.s2p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.termsContent.s3h")}</h2>
+      <p>{t("onboarding.termsContent.s3p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.termsContent.s4h")}</h2>
+      <p>{t("onboarding.termsContent.s4p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.termsContent.s5h")}</h2>
+      <p>{t("onboarding.termsContent.s5p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.termsContent.s6h")}</h2>
+      <p>{t("onboarding.termsContent.s6p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.termsContent.s7h")}</h2>
+      <p>{t("onboarding.termsContent.s7p")}</p>
+    </div>
   );
 }
 
 function PrivacyContent() {
   const { t } = useTranslation();
-  const h2: React.CSSProperties = {
-    fontSize: 15,
-    fontWeight: 600,
-    marginTop: 20,
-    marginBottom: 6,
-    fontFamily: "var(--font-display)",
-  };
-  const p: React.CSSProperties = { fontSize: 13, color: "var(--color-ink-secondary)", marginBottom: 12, lineHeight: 1.65 };
   return (
-    <>
-      <h2 style={h2}>{t("onboarding.privacyContent.s1h")}</h2>
-      <p style={p}>{t("onboarding.privacyContent.s1p")}</p>
-      <h2 style={h2}>{t("onboarding.privacyContent.s2h")}</h2>
-      <p style={p}>{t("onboarding.privacyContent.s2p")}</p>
-      <h2 style={h2}>{t("onboarding.privacyContent.s3h")}</h2>
-      <p style={p}>{t("onboarding.privacyContent.s3p")}</p>
-      <h2 style={h2}>{t("onboarding.privacyContent.s4h")}</h2>
-      <p style={p}>{t("onboarding.privacyContent.s4p")}</p>
-      <h2 style={h2}>{t("onboarding.privacyContent.s5h")}</h2>
-      <p style={p}>{t("onboarding.privacyContent.s5p")}</p>
-      <h2 style={h2}>{t("onboarding.privacyContent.s6h")}</h2>
-      <p style={p}>{t("onboarding.privacyContent.s6p")}</p>
-    </>
+    <div className="text-muted-foreground space-y-3 text-sm">
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.privacyContent.s1h")}</h2>
+      <p>{t("onboarding.privacyContent.s1p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.privacyContent.s2h")}</h2>
+      <p>{t("onboarding.privacyContent.s2p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.privacyContent.s3h")}</h2>
+      <p>{t("onboarding.privacyContent.s3p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.privacyContent.s4h")}</h2>
+      <p>{t("onboarding.privacyContent.s4p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.privacyContent.s5h")}</h2>
+      <p>{t("onboarding.privacyContent.s5p")}</p>
+      <h2 className="text-foreground text-base font-semibold">{t("onboarding.privacyContent.s6h")}</h2>
+      <p>{t("onboarding.privacyContent.s6p")}</p>
+    </div>
+  );
+}
+
+function StepDots({ step }: { step: number }) {
+  return (
+    <div className="mb-6 flex justify-center gap-2" aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className={cn(
+            "size-2 rounded-full transition-colors",
+            i === step ? "bg-primary" : "bg-muted",
+          )}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -200,14 +161,14 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState(0);
   const [speciality, setSpeciality] = useState("");
   const [role, setRole] = useState("");
-  const [agreed, setAgreed] = useState(false);
   const [orgName, setOrgName] = useState("");
   const [orgSize, setOrgSize] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [legalPopup, setLegalPopup] = useState<"terms" | "privacy" | null>(null);
 
-  const canNext0 = speciality && role && agreed;
-  const canNext1 = orgName.trim();
+  const canNext0 = Boolean(speciality && role && agreed);
+  const canNext1 = Boolean(orgName.trim() && orgSize);
 
   const handleFinish = async () => {
     if (!user) return;
@@ -224,86 +185,25 @@ export default function OnboardingFlow() {
     setSaving(false);
   };
 
-  const dots = (
-    <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: i === step ? "var(--color-leaf)" : "var(--color-surface-inset)",
-            transition: "background 0.2s",
-          }}
-        />
-      ))}
-    </div>
-  );
-
   const legalPopupEl = legalPopup && (
-    <div style={{
-      position: "fixed",
-      inset: 0,
-      zIndex: 1200,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "rgba(0,0,0,0.35)",
-      backdropFilter: "blur(4px)",
-      WebkitBackdropFilter: "blur(4px)",
-    }}>
-      <div style={{
-        width: 500,
-        maxWidth: "90vw",
-        maxHeight: "70vh",
-        background: "var(--color-bg)",
-        borderRadius: 14,
-        border: "1px solid var(--border-color)",
-        boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 20px",
-          borderBottom: "1px solid var(--border-color)",
-          flexShrink: 0,
-        }}>
-          <h3 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 18,
-            fontWeight: 400,
-            color: "var(--color-ink)",
-            margin: 0,
-          }}>
-            {legalPopup === "terms" ? t("onboarding.legalModal.terms") : t("onboarding.legalModal.privacy")}
+    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/35 backdrop-blur-[4px]">
+      <div className="bg-background flex max-h-[70vh] w-[500px] max-w-[90vw] flex-col overflow-hidden rounded-xl border shadow-lg">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h3 className="text-foreground text-lg font-medium">
+            {legalPopup === "terms"
+              ? t("onboarding.legalModal.terms")
+              : t("onboarding.legalModal.privacy")}
           </h3>
           <button
+            type="button"
             onClick={() => setLegalPopup(null)}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--color-ink-tertiary)",
-              padding: 4,
-              borderRadius: 6,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            className="text-muted-foreground hover:text-foreground rounded-md p-1"
+            aria-label="Close"
           >
-            <X size={18} />
+            <X className="size-[18px]" />
           </button>
         </div>
-        <div style={{
-          padding: "8px 20px 24px",
-          overflowY: "auto",
-          flex: 1,
-        }}>
+        <div className="flex-1 overflow-y-auto px-5 py-2 pb-6">
           {legalPopup === "terms" ? <TermsContent /> : <PrivacyContent />}
         </div>
       </div>
@@ -312,83 +212,74 @@ export default function OnboardingFlow() {
 
   if (step === 0) {
     return (
-      <div>
+      <div className="flex w-full flex-col gap-5">
         {legalPopupEl}
-        {dots}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
-          <img
-            src="/Cavio Logo.png"
-            alt="Cavio logo"
-            style={{ width: 28, height: 28, display: "block", marginBottom: 10 }}
-          />
-          <h2 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 22,
-            fontWeight: 400,
-            color: "var(--color-ink)",
-            textAlign: "center",
-            marginBottom: 0,
-          }}>
-            {t("onboarding.step0.title")}
-          </h2>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <StepDots step={0} />
+        <AuthFormHeader
+          title={t("onboarding.step0.title")}
+          description={t("onboarding.step0.subtitle", {
+            defaultValue: "Tell us a bit about how you practice.",
+          })}
+        />
+        <div className="grid gap-3">
           <StyledSelect
+            id="speciality"
+            label={t("onboarding.step0.specialtyLabel", {
+              defaultValue: "Specialty",
+            })}
             value={speciality}
             onValueChange={setSpeciality}
             placeholder={t("onboarding.step0.specialtyPlaceholder")}
-            options={SPECIALITIES.map((s) => ({ value: s, label: t(`onboarding.specialties.${s}`, { defaultValue: s }) }))}
+            options={SPECIALITIES.map((s) => ({
+              value: s,
+              label: t(`onboarding.specialties.${s}`, { defaultValue: s }),
+            }))}
           />
-
           <StyledSelect
+            id="role"
+            label={t("onboarding.step0.roleLabel", { defaultValue: "Role" })}
             value={role}
             onValueChange={setRole}
             placeholder={t("onboarding.step0.rolePlaceholder")}
-            options={ROLES.map((r) => ({ value: r, label: t(`onboarding.roles.${r}`, { defaultValue: r }) }))}
+            options={ROLES.map((r) => ({
+              value: r,
+              label: t(`onboarding.roles.${r}`, { defaultValue: r }),
+            }))}
           />
-
-          <div style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            fontSize: 13,
-            color: "var(--color-ink-secondary)",
-            marginTop: 4,
-          }}>
+          <label className="text-muted-foreground mt-1 flex items-start gap-2.5 text-sm">
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              style={{ marginTop: 2, accentColor: "var(--color-leaf)", cursor: "pointer" }}
+              className="accent-primary mt-0.5 cursor-pointer"
             />
             <span>
               {t("onboarding.step0.agreeText")}{" "}
               <button
                 type="button"
                 onClick={() => setLegalPopup("terms")}
-                style={{ background: "none", border: "none", padding: 0, color: "var(--color-leaf)", textDecoration: "underline", fontWeight: 500, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13 }}
+                className="text-primary font-medium underline underline-offset-4"
               >
                 {t("onboarding.step0.terms")}
-              </button>
-              {" "}{t("onboarding.step0.and")}{" "}
+              </button>{" "}
+              {t("onboarding.step0.and")}{" "}
               <button
                 type="button"
                 onClick={() => setLegalPopup("privacy")}
-                style={{ background: "none", border: "none", padding: 0, color: "var(--color-leaf)", textDecoration: "underline", fontWeight: 500, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13 }}
+                className="text-primary font-medium underline underline-offset-4"
               >
                 {t("onboarding.step0.privacy")}
               </button>
             </span>
-          </div>
-
-          <button
+          </label>
+          <CtaButton
+            className="mt-2 w-full"
             disabled={!canNext0}
             onClick={() => setStep(1)}
-            style={{ ...primaryBtnStyle, opacity: canNext0 ? 1 : 0.5, cursor: canNext0 ? "pointer" : "not-allowed", marginTop: 8 }}
+            type="button"
           >
             {t("onboarding.continue")}
-          </button>
+          </CtaButton>
         </div>
       </div>
     );
@@ -396,109 +287,87 @@ export default function OnboardingFlow() {
 
   if (step === 1) {
     return (
-      <div>
-        {dots}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
-          <img
-            src="/Cavio Logo.png"
-            alt="Cavio logo"
-            style={{ width: 28, height: 28, display: "block", marginBottom: 10 }}
-          />
-          <h2 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 22,
-            fontWeight: 400,
-            color: "var(--color-ink)",
-            textAlign: "center",
-            marginBottom: 0,
-          }}>
-            {t("onboarding.step1.title")}
-          </h2>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <input
-            style={inputStyle}
-            placeholder={t("onboarding.step1.orgName")}
-            value={orgName}
-            onChange={(e) => setOrgName(e.target.value)}
-            onFocus={(e) => e.currentTarget.style.borderColor = "var(--color-leaf)"}
-            onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
-          />
-
+      <div className="flex w-full flex-col gap-5">
+        <StepDots step={1} />
+        <AuthFormHeader
+          title={t("onboarding.step1.title")}
+          description={t("onboarding.step1.subtitle", {
+            defaultValue: "Set up your clinic workspace.",
+          })}
+        />
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label htmlFor="orgName">
+              {t("onboarding.step1.orgNameLabel", {
+                defaultValue: "Clinic name",
+              })}
+            </Label>
+            <Input
+              className="h-11 rounded-xl px-4"
+              id="orgName"
+              placeholder={t("onboarding.step1.orgName")}
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+            />
+          </div>
           <StyledSelect
+            id="orgSize"
+            label={t("onboarding.step1.dentistsLabel", {
+              defaultValue: "Team size",
+            })}
             value={orgSize}
             onValueChange={setOrgSize}
             placeholder={t("onboarding.step1.dentistsPlaceholder")}
-            options={ORG_SIZES.map((s) => ({ value: s, label: t(`onboarding.orgSizes.${s}`, { defaultValue: s }) }))}
+            options={ORG_SIZES.map((s) => ({
+              value: s,
+              label: t(`onboarding.orgSizes.${s}`, { defaultValue: s }),
+            }))}
           />
-
-          <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-            <button
+          <div className="mt-2 flex gap-3">
+            <CtaButton
+              className="flex-1"
+              type="button"
+              variant="light"
               onClick={() => setStep(0)}
-              style={{
-                flex: 1,
-                padding: "11px 0",
-                background: "transparent",
-                color: "var(--color-ink-secondary)",
-                border: "1px solid var(--border-emphasis)",
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: "pointer",
-                fontFamily: "var(--font-body)",
-              }}
             >
               {t("onboarding.step1.back")}
-            </button>
-            <button
+            </CtaButton>
+            <CtaButton
+              className="flex-[2]"
+              type="button"
               disabled={!canNext1}
               onClick={() => setStep(2)}
-              style={{ ...primaryBtnStyle, flex: 2, opacity: canNext1 ? 1 : 0.5, cursor: canNext1 ? "pointer" : "not-allowed" }}
             >
               {t("onboarding.continue")}
-            </button>
+            </CtaButton>
           </div>
         </div>
       </div>
     );
   }
 
-  // Step 2 — Welcome
   return (
-    <div>
-      {dots}
-      <div style={{ textAlign: "center" }}>
-        <img
-          src="/Cavio Logo.png"
-          alt="Cavio logo"
-          style={{ width: 28, height: 28, display: "block", margin: "0 auto 10px" }}
-        />
-        <h2 style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 24,
-          fontWeight: 400,
-          color: "var(--color-ink)",
-          marginBottom: 8,
-        }}>
-          {t("onboarding.step2.title")}
-        </h2>
-        <p style={{
-          fontSize: 14,
-          color: "var(--color-ink-secondary)",
-          marginBottom: 24,
-          lineHeight: 1.6,
-        }}>
-          {t("onboarding.step2.trialText")}
-        </p>
-        <button
-          onClick={handleFinish}
-          disabled={saving}
-          style={{ ...primaryBtnStyle, opacity: saving ? 0.7 : 1 }}
-        >
-          {saving ? t("onboarding.step2.saving") : t("onboarding.step2.getStarted")}
-        </button>
-      </div>
+    <div className="flex w-full flex-col gap-5">
+      <StepDots step={2} />
+      <AuthFormHeader
+        title={t("onboarding.step2.title")}
+        description={t("onboarding.step2.trialText")}
+      />
+      <CtaButton
+        className="w-full"
+        type="button"
+        disabled={saving}
+        onClick={handleFinish}
+      >
+        {saving ? (
+          <>
+            <Loader2Icon className="size-4 animate-spin" />
+            {t("onboarding.step2.saving")}
+          </>
+        ) : (
+          t("onboarding.step2.getStarted")
+        )}
+      </CtaButton>
     </div>
   );
 }
