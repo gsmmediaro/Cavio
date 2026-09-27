@@ -25,7 +25,10 @@ type CreditTopupModalProps = {
   success?: boolean;
 };
 
-/** Port of Notra CreditTopupModal — Cavio multi-pack Stripe checkout. */
+/**
+ * Optional path into the same subscription checkout.
+ * Primary billing UX is Plans → Subscribe (Monthly/Yearly).
+ */
 export function CreditTopupModal({
   open,
   onOpenChange,
@@ -36,10 +39,10 @@ export function CreditTopupModal({
   const [buying, setBuying] = useState(false);
   const [selected, setSelected] = useState<CavioPlanId>("pro");
 
-  const handleBuy = async () => {
+  const handleSubscribe = async () => {
     setBuying(true);
     try {
-      const { checkout_url } = await createCheckoutSession(selected);
+      const { checkout_url } = await createCheckoutSession(selected, "month");
       window.location.href = checkout_url;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Checkout failed";
@@ -54,7 +57,7 @@ export function CreditTopupModal({
     : "Sign in to view balance";
   const ctaLabel = buying
     ? "Redirecting..."
-    : "Buy " + String(preset.credits) + " credits (" + preset.label + ")";
+    : "Subscribe — " + preset.label + " (" + String(preset.credits) + " credits/mo)";
 
   if (success) {
     return (
@@ -63,9 +66,9 @@ export function CreditTopupModal({
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <HugeiconsIcon className="text-primary size-12" icon={Tick02Icon} />
             <div className="space-y-1">
-              <h2 className="text-xl font-bold">Credits Added!</h2>
+              <h2 className="text-xl font-bold">Subscription updated</h2>
               <p className="text-muted-foreground text-sm">
-                Your scan credits have been topped up and are ready to use.
+                Your monthly scan credits are ready to use.
               </p>
             </div>
             <Button className="mt-2" onClick={() => onOpenChange(false)} size="sm">
@@ -83,10 +86,10 @@ export function CreditTopupModal({
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="flex items-center gap-2">
             <HugeiconsIcon className="size-5" icon={CreditCardIcon} />
-            Top Up Credits
+            Subscribe
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Choose a Cavio credit pack: Starter, Pro, or Clinic.
+            Pick a plan for monthly scan credits. For yearly billing (Save 20%), use Settings → Plans.
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -108,7 +111,7 @@ export function CreditTopupModal({
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Select pack</p>
+              <p className="text-sm font-medium">Select plan</p>
               <div className="grid grid-cols-3 gap-2">
                 {CAVIO_TOPUP_PRESETS.map((p) => (
                   <button
@@ -125,7 +128,7 @@ export function CreditTopupModal({
                   >
                     <div>{p.label}</div>
                     <div className="text-muted-foreground text-[10px] font-normal">
-                      {p.credits} credits
+                      {p.credits} credits/mo
                     </div>
                   </button>
                 ))}
@@ -135,7 +138,7 @@ export function CreditTopupModal({
             <CtaButton
               className="h-11 w-full"
               disabled={buying || !credits}
-              onClick={() => void handleBuy()}
+              onClick={() => void handleSubscribe()}
             >
               {ctaLabel}
             </CtaButton>

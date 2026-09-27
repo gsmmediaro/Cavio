@@ -48,7 +48,7 @@ export function CreditsSettingsPane({
       <CreditSummaryCards
         balanceAction={
           <Button
-            aria-label="Top up credits"
+            aria-label="Subscribe"
             onClick={() => setTopupOpen(true)}
             size="icon-sm"
             variant="ghost"

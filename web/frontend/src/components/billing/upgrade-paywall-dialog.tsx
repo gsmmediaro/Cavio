@@ -6,6 +6,7 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -16,7 +17,9 @@ import {
   CAVIO_PAID_PLAN_DEFS,
   CAVIO_PLANS,
   FEATURED_PLAN_ID,
-  formatPlanPrice,
+  formatCentsAsUsd,
+  priceForInterval,
+  type BillingInterval,
 } from "@/constants/plans";
 
 type UpgradePaywallDialogProps = {
@@ -28,16 +31,19 @@ type UpgradePaywallDialogProps = {
   description?: string;
 };
 
-/** Port of Notra GeoUpgradeDialog — Cavio Starter/Pro/Clinic packs. */
+/** Port of Notra GeoUpgradeDialog — subscription cards + Monthly/Yearly toggle. */
 export function UpgradePaywallDialog({
   open,
   onOpenChange,
   credits,
   loadingCredits = false,
-  title = "Upgrade your credits",
-  description = "Pick a credit pack to keep running OPG caries scans. One credit per scan.",
+  title = "Choose your plan",
+  description = "Subscribe for monthly scan credits. One credit per OPG. Yearly saves 20%.",
 }: UpgradePaywallDialogProps) {
   const [buyingPlan, setBuyingPlan] = useState<string | null>(null);
+  const [isYearly, setIsYearly] = useState(false);
+  const interval: BillingInterval = isYearly ? "year" : "month";
+  const intervalLabel = isYearly ? "year" : "mo";
 
   const paidPlans = useMemo(() => {
     const fromApi = credits?.plans?.filter((p) => p.id !== CAVIO_PLANS.FREE);
@@ -46,8 +52,11 @@ export function UpgradePaywallDialog({
       id: p.id,
       name: p.name,
       description: p.description,
-      price_cents: p.priceCents,
-      credits: p.credits,
+      price_cents: p.priceCentsMonthly,
+      price_cents_monthly: p.priceCentsMonthly,
+      price_cents_yearly: p.priceCentsMonthly * 10,
+      credits: p.creditsMonthly,
+      credits_monthly: p.creditsMonthly,
       featured: Boolean(p.featured),
     }));
   }, [credits]);
@@ -55,10 +64,10 @@ export function UpgradePaywallDialog({
   const featuredId = credits?.featured_plan_id ?? FEATURED_PLAN_ID;
   const scanCost = Math.max(credits?.scan_cost ?? 1, 1);
 
-  const handleBuy = async (planId: string) => {
+  const handleSubscribe = async (planId: string) => {
     setBuyingPlan(planId);
     try {
-      const { checkout_url } = await createCheckoutSession(planId);
+      const { checkout_url } = await createCheckoutSession(planId, interval);
       window.location.href = checkout_url;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Checkout failed";
@@ -75,6 +84,23 @@ export function UpgradePaywallDialog({
           <ResponsiveDialogDescription>{description}</ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
+        <div className="flex justify-center pb-2">
+          <Tabs
+            onValueChange={(v) => setIsYearly(v === "yearly")}
+            value={isYearly ? "yearly" : "monthly"}
+          >
+            <TabsList aria-label="Billing interval">
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger className="flex items-center gap-1.5" value="yearly">
+                Yearly
+                <Badge className="text-[10px]" variant="secondary">
+                  Save 20%
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
           {loadingCredits && !credits ? (
             <div className="grid gap-4 lg:grid-cols-3">
@@ -86,37 +112,40 @@ export function UpgradePaywallDialog({
             <div className="grid gap-4 lg:grid-cols-3">
               {paidPlans.map((plan) => {
                 const featured = plan.id === featuredId || Boolean(plan.featured);
-                const priceUsd = plan.price_cents / 100;
-                const scans = Math.floor(plan.credits / scanCost);
-                const buyLabel =
-                  buyingPlan === plan.id
-                    ? "Loading..."
-                    : "Get " + String(plan.credits) + " credits";
+                const cents = priceForInterval(plan, interval);
+                const creditsMo = plan.credits_monthly ?? plan.credits;
+                const scans = Math.floor(creditsMo / scanCost);
+                const label =
+                  buyingPlan === plan.id ? "Loading..." : "Subscribe";
                 return (
                   <PlanCard
                     action={featured ? <Badge>Most popular</Badge> : undefined}
                     button={{
-                      label: buyLabel,
+                      label,
                       disabled: buyingPlan !== null,
                       variant: featured ? "cta" : "outline",
-                      onClick: () => void handleBuy(plan.id),
+                      onClick: () => void handleSubscribe(plan.id),
                     }}
                     description={plan.description}
                     featured={featured}
                     features={[
-                      { text: String(plan.credits) + " scan credits" },
+                      { text: `${creditsMo} scan credits / mo` },
                       {
-                        text: "~" + String(scans) + " OPG scans",
-                        overageText: String(scanCost) + " credit per scan",
+                        text: `~${scans} OPG scans / mo`,
+                        overageText: `${scanCost} credit per scan`,
                       },
-                      { text: "Credits never expire" },
-                      { text: "Instant Stripe checkout" },
+                      {
+                        text: isYearly
+                          ? "Billed yearly — Save 20%"
+                          : "Credits renew each month",
+                      },
+                      { text: "Cancel anytime" },
                     ]}
                     highlighted={false}
-                    intervalLabel="pack"
+                    intervalLabel={intervalLabel}
                     key={plan.id}
                     name={plan.name}
-                    priceLabel={formatPlanPrice(priceUsd)}
+                    priceLabel={formatCentsAsUsd(cents)}
                   />
                 );
               })}

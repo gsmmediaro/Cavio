@@ -1,4 +1,4 @@
-"""SQLite-backed credit balances and local auth accounts."""
+"""SQLite-backed credit balances, subscriptions, and local auth accounts."""
 
 from __future__ import annotations
 
@@ -18,6 +18,22 @@ def _connect() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     return conn
+
+
+def _ensure_subscription_columns(conn: sqlite3.Connection) -> None:
+    cols = {
+        row["name"]
+        for row in conn.execute("PRAGMA table_info(users)").fetchall()
+    }
+    alterations = [
+        ("subscription_plan_id", "TEXT NOT NULL DEFAULT ''"),
+        ("subscription_interval", "TEXT NOT NULL DEFAULT ''"),
+        ("subscription_status", "TEXT NOT NULL DEFAULT ''"),
+        ("stripe_subscription_id", "TEXT NOT NULL DEFAULT ''"),
+    ]
+    for name, decl in alterations:
+        if name not in cols:
+            conn.execute(f"ALTER TABLE users ADD COLUMN {name} {decl}")
 
 
 def init_db() -> None:
@@ -48,6 +64,7 @@ def init_db() -> None:
         );
         """
     )
+    _ensure_subscription_columns(conn)
     conn.commit()
     conn.close()
 
@@ -57,6 +74,7 @@ def ensure_user(uid: str, email: str, provider: str) -> dict:
     init_db()
     settings = get_settings()
     conn = _connect()
+    _ensure_subscription_columns(conn)
     row = conn.execute("SELECT * FROM users WHERE uid = ?", (uid,)).fetchone()
     if row:
         if email and row["email"] != email:
@@ -90,6 +108,7 @@ def create_local_user(email: str, password_hash: str) -> dict:
     settings = get_settings()
     email_norm = email.strip().lower()
     conn = _connect()
+    _ensure_subscription_columns(conn)
     existing = conn.execute(
         "SELECT uid FROM users WHERE lower(email) = ?", (email_norm,)
     ).fetchone()
@@ -161,6 +180,68 @@ def add_credits(uid: str, delta: int, reason: str, ref: Optional[str] = None) ->
     conn.commit()
     conn.close()
     return new_balance
+
+
+def reset_credits(uid: str, amount: int, reason: str, ref: Optional[str] = None) -> int:
+    """Set absolute credit balance (subscription period grant/reset)."""
+    init_db()
+    if amount < 0:
+        raise ValueError("amount must be >= 0")
+    conn = _connect()
+    conn.execute("BEGIN IMMEDIATE")
+    row = conn.execute("SELECT credits FROM users WHERE uid = ?", (uid,)).fetchone()
+    if not row:
+        conn.execute("ROLLBACK")
+        conn.close()
+        raise KeyError(uid)
+    old = int(row["credits"])
+    delta = amount - old
+    conn.execute("UPDATE users SET credits = ? WHERE uid = ?", (amount, uid))
+    conn.execute(
+        "INSERT INTO credit_ledger (uid, delta, reason, ref) VALUES (?, ?, ?, ?)",
+        (uid, delta, reason, ref),
+    )
+    conn.commit()
+    conn.close()
+    return amount
+
+
+def set_subscription(
+    uid: str,
+    *,
+    plan_id: str,
+    interval: str,
+    status: str,
+    stripe_ref: Optional[str] = None,
+) -> None:
+    init_db()
+    conn = _connect()
+    _ensure_subscription_columns(conn)
+    conn.execute(
+        """
+        UPDATE users
+        SET subscription_plan_id = ?,
+            subscription_interval = ?,
+            subscription_status = ?,
+            stripe_subscription_id = COALESCE(?, stripe_subscription_id)
+        WHERE uid = ?
+        """,
+        (plan_id, interval, status, stripe_ref, uid),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_subscription(uid: str) -> Optional[dict]:
+    user = get_user(uid)
+    if not user:
+        return None
+    return {
+        "plan_id": user.get("subscription_plan_id") or "",
+        "interval": user.get("subscription_interval") or "",
+        "status": user.get("subscription_status") or "",
+        "stripe_subscription_id": user.get("stripe_subscription_id") or "",
+    }
 
 
 def deduct_scan_credit(uid: str, cost: Optional[int] = None) -> int:

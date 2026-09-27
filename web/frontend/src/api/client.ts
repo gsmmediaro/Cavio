@@ -394,9 +394,15 @@ export interface PlanInfo {
   name: string;
   description: string;
   price_cents: number;
+  price_cents_monthly?: number;
+  price_cents_yearly?: number;
   credits: number;
+  credits_monthly?: number;
   featured?: boolean;
   stripe_price_id?: string;
+  stripe_price_id_monthly?: string;
+  stripe_price_id_yearly?: string;
+  interval?: string;
 }
 
 export interface CreditsInfo {
@@ -407,6 +413,9 @@ export interface CreditsInfo {
   publishable_key: string;
   plans?: PlanInfo[];
   featured_plan_id?: string;
+  subscription_plan_id?: string;
+  subscription_interval?: string;
+  subscription_status?: string;
 }
 
 export async function getCredits(): Promise<CreditsInfo> {
@@ -437,13 +446,20 @@ export async function getCredits(): Promise<CreditsInfo> {
 
 export async function createCheckoutSession(
   planId: string = "pro",
-): Promise<{ checkout_url: string; session_id: string; plan_id: string; credits: number }> {
+  interval: "month" | "year" = "month",
+): Promise<{
+  checkout_url: string;
+  session_id: string;
+  plan_id: string;
+  credits: number;
+  interval?: string;
+}> {
   const headers = await authHeaders();
   headers["Content-Type"] = "application/json";
   const res = await fetch(build_api_url("/api/billing/checkout"), {
     method: "POST",
     headers,
-    body: JSON.stringify({ plan_id: planId }),
+    body: JSON.stringify({ plan_id: planId, interval }),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
