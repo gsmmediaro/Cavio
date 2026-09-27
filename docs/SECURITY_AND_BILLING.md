@@ -34,6 +34,37 @@ New users receive SIGNUP_BONUS_CREDITS (default 3). Each successful analyze dedu
 
 Server refuses non-sk_test_ secret keys.
 
+
+
+## Multi-tier pricing (Notra-adapted)
+
+Notra (usenotra SoT) exposes **Free + Starter / Growth / Scale** subscription cards via Autumn,
+plus separate AI credit top-up presets (///).
+
+Cavio keeps **Stripe Checkout TEST** (one-time packs, no Autumn) but mirrors the card grid:
+
+| Plan | Price | Credits | Stripe env |
+|------|-------|---------|------------|
+| Free |  | SIGNUP_BONUS_CREDITS (default 3) | — |
+| Starter |  | 25 | STRIPE_PRICE_ID_STARTER |
+| Pro (featured) |  | 80 | STRIPE_PRICE_ID_PRO (also STRIPE_PRICE_ID back-compat) |
+| Clinic |  | 250 | STRIPE_PRICE_ID_CLINIC |
+
+### Create Products + Prices (TEST mode only)
+
+`powershell
+cd C:\Users\shado\Desktop\Cavio
+# Ensure web/backend/.env has STRIPE_SECRET_KEY=sk_test_... (never sk_live_)
+.\\.venv311\Scripts\python.exe scripts\create_stripe_plans.py --write-env
+`
+
+The script is idempotent (matches metadata.cavio_plan_id). Checkout accepts
+POST /api/billing/checkout with body { "plan_id": "starter"|"pro"|"clinic" }.
+If a price id env is empty, Checkout falls back to inline price_data for that tier.
+
+UI: Settings → Plans shows Free + 3 pack cards; paywall dialog shows the 3 paid cards;
+Credits → Top up offers the same three presets.
+
 ## Run API + frontend
 
 `powershell

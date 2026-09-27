@@ -389,12 +389,24 @@ export async function updateScanPatientName(uid: string, scanId: string, newName
 
 /* ── Credits / billing (backend) ── */
 
+export interface PlanInfo {
+  id: string;
+  name: string;
+  description: string;
+  price_cents: number;
+  credits: number;
+  featured?: boolean;
+  stripe_price_id?: string;
+}
+
 export interface CreditsInfo {
   credits: number;
   scan_cost: number;
   pack_credits: number;
   pack_price_cents: number;
   publishable_key: string;
+  plans?: PlanInfo[];
+  featured_plan_id?: string;
 }
 
 export async function getCredits(): Promise<CreditsInfo> {
@@ -423,12 +435,15 @@ export async function getCredits(): Promise<CreditsInfo> {
   return res.json();
 }
 
-export async function createCheckoutSession(): Promise<{ checkout_url: string; session_id: string }> {
+export async function createCheckoutSession(
+  planId: string = "pro",
+): Promise<{ checkout_url: string; session_id: string; plan_id: string; credits: number }> {
   const headers = await authHeaders();
-  headers['Content-Type'] = 'application/json';
-  const res = await fetch(build_api_url('/api/billing/checkout'), {
-    method: 'POST',
+  headers["Content-Type"] = "application/json";
+  const res = await fetch(build_api_url("/api/billing/checkout"), {
+    method: "POST",
     headers,
+    body: JSON.stringify({ plan_id: planId }),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();

@@ -65,6 +65,10 @@ class Settings:
         self.stripe_publishable_key = (os.getenv("STRIPE_PUBLISHABLE_KEY") or "").strip()
         self.stripe_webhook_secret = (os.getenv("STRIPE_WEBHOOK_SECRET") or "").strip()
         self.stripe_price_id = (os.getenv("STRIPE_PRICE_ID") or "").strip()
+        # Multi-tier packs (Notra-style Starter/Pro/Clinic). Optional — checkout falls back to price_data.
+        self.stripe_price_id_starter = (os.getenv("STRIPE_PRICE_ID_STARTER") or "").strip()
+        self.stripe_price_id_pro = (os.getenv("STRIPE_PRICE_ID_PRO") or "").strip()
+        self.stripe_price_id_clinic = (os.getenv("STRIPE_PRICE_ID_CLINIC") or "").strip()
         self.checkout_success_url = (
             os.getenv("CHECKOUT_SUCCESS_URL")
             or "http://localhost:5173/settings?credits=success"

@@ -7,6 +7,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { cn } from "@notra/ui/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +15,7 @@ import { createCheckoutSession, type CreditsInfo } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { CtaButton } from "@/components/ui/cta-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CAVIO_TOPUP_PRESETS, type CavioPlanId } from "@/constants/plans";
 
 type CreditTopupModalProps = {
   open: boolean;
@@ -23,7 +25,7 @@ type CreditTopupModalProps = {
   success?: boolean;
 };
 
-/** Port of Notra CreditTopupModal — wires Cavio Stripe checkout. */
+/** Port of Notra CreditTopupModal — Cavio multi-pack Stripe checkout. */
 export function CreditTopupModal({
   open,
   onOpenChange,
@@ -32,11 +34,12 @@ export function CreditTopupModal({
   success = false,
 }: CreditTopupModalProps) {
   const [buying, setBuying] = useState(false);
+  const [selected, setSelected] = useState<CavioPlanId>("pro");
 
   const handleBuy = async () => {
     setBuying(true);
     try {
-      const { checkout_url } = await createCheckoutSession();
+      const { checkout_url } = await createCheckoutSession(selected);
       window.location.href = checkout_url;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Checkout failed";
@@ -45,9 +48,13 @@ export function CreditTopupModal({
     }
   };
 
-  const packLabel = credits
-    ? `Buy ${credits.pack_credits} credits ($${(credits.pack_price_cents / 100).toFixed(2)})`
-    : "Buy credits";
+  const preset = CAVIO_TOPUP_PRESETS.find((p) => p.planId === selected) ?? CAVIO_TOPUP_PRESETS[1];
+  const balanceHint = credits
+    ? String(credits.scan_cost) + " credit per OPG scan"
+    : "Sign in to view balance";
+  const ctaLabel = buying
+    ? "Redirecting..."
+    : "Buy " + String(preset.credits) + " credits (" + preset.label + ")";
 
   if (success) {
     return (
@@ -79,7 +86,7 @@ export function CreditTopupModal({
             Top Up Credits
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Purchase additional scan credits for Cavio via Stripe.
+            Choose a Cavio credit pack: Starter, Pro, or Clinic.
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -95,34 +102,42 @@ export function CreditTopupModal({
                 Current balance
               </p>
               <p className="mt-1 text-3xl font-bold tabular-nums">
-                {credits ? credits.credits : "—"}
+                {credits ? credits.credits : "-"}
               </p>
-              <p className="text-muted-foreground mt-1 text-sm">
-                {credits ? `${credits.scan_cost} credit per OPG scan` : "Sign in to view balance"}
-              </p>
+              <p className="text-muted-foreground mt-1 text-sm">{balanceHint}</p>
             </div>
 
-            <div className="ring-foreground/10 space-y-2 rounded-lg px-4 py-3 ring-1">
-              <div className="flex items-baseline justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium">Credit pack</p>
-                  <p className="text-muted-foreground text-xs">
-                    One-time purchase · Stripe test mode
-                  </p>
-                </div>
-                <p className="text-lg font-bold tabular-nums">
-                  {credits ? `$${(credits.pack_price_cents / 100).toFixed(2)}` : "—"}
-                </p>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Select pack</p>
+              <div className="grid grid-cols-3 gap-2">
+                {CAVIO_TOPUP_PRESETS.map((p) => (
+                  <button
+                    className={cn(
+                      "rounded-lg border py-2.5 text-sm font-medium transition-colors",
+                      selected === p.planId
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "hover:bg-accent",
+                    )}
+                    disabled={buying}
+                    key={p.planId}
+                    onClick={() => setSelected(p.planId)}
+                    type="button"
+                  >
+                    <div>{p.label}</div>
+                    <div className="text-muted-foreground text-[10px] font-normal">
+                      {p.credits} credits
+                    </div>
+                  </button>
+                ))}
               </div>
-              <p className="text-muted-foreground text-xs">
-                {credits
-                  ? `${credits.pack_credits} credits · ~${Math.floor(credits.pack_credits / Math.max(credits.scan_cost, 1))} scans`
-                  : "Loading pack…"}
-              </p>
             </div>
 
-            <CtaButton className="h-11 w-full" disabled={buying || !credits} onClick={() => void handleBuy()}>
-              {buying ? "Redirecting…" : packLabel}
+            <CtaButton
+              className="h-11 w-full"
+              disabled={buying || !credits}
+              onClick={() => void handleBuy()}
+            >
+              {ctaLabel}
             </CtaButton>
           </div>
         )}

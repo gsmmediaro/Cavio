@@ -1,47 +1,72 @@
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { createCheckoutSession, type CreditsInfo } from "@/api/client";
+import { createCheckoutSession, type CreditsInfo, type PlanInfo } from "@/api/client";
 import { PlanCard } from "@/components/billing/plan-card";
 import { UpgradePaywallDialog } from "@/components/billing/upgrade-paywall-dialog";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  CAVIO_PAID_PLAN_DEFS,
+  CAVIO_PLAN_DEFS,
+  CAVIO_PLANS,
+  FEATURED_PLAN_ID,
+  formatPlanPrice,
+} from "@/constants/plans";
 
 type BillingPaneProps = {
   credits: CreditsInfo | null;
   creditsLoading: boolean;
 };
 
-/** Port of Notra BillingSettingsPane plan grid — Cavio single Stripe pack. */
+function mergePlans(credits: CreditsInfo | null): PlanInfo[] {
+  const fromApi = credits?.plans;
+  if (fromApi && fromApi.length > 0) return fromApi;
+  return CAVIO_PLAN_DEFS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    price_cents: p.priceCents,
+    credits: p.credits,
+    featured: Boolean(p.featured),
+  }));
+}
+
+/** Port of Notra BillingSettingsPane plan grid — Cavio Free + Starter/Pro/Clinic packs. */
 export function BillingSettingsPane({ credits, creditsLoading }: BillingPaneProps) {
-  const [buying, setBuying] = useState(false);
+  const [buyingPlan, setBuyingPlan] = useState<string | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
 
-  const handleBuy = async () => {
-    setBuying(true);
+  const plans = useMemo(() => mergePlans(credits), [credits]);
+  const freePlan = plans.find((p) => p.id === CAVIO_PLANS.FREE);
+  const paidPlans = plans.filter((p) => p.id !== CAVIO_PLANS.FREE);
+  const featuredId = credits?.featured_plan_id ?? FEATURED_PLAN_ID;
+  const scanCost = Math.max(credits?.scan_cost ?? 1, 1);
+
+  const handleBuy = async (planId: string) => {
+    if (planId === CAVIO_PLANS.FREE) return;
+    setBuyingPlan(planId);
     try {
-      const { checkout_url } = await createCheckoutSession();
+      const { checkout_url } = await createCheckoutSession(planId);
       window.location.href = checkout_url;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Checkout failed";
       toast.error(msg);
-      setBuying(false);
+      setBuyingPlan(null);
     }
   };
-
-  const packPrice = credits ? credits.pack_price_cents / 100 : 0;
-  const packCredits = credits?.pack_credits ?? 0;
-  const scanCost = Math.max(credits?.scan_cost ?? 1, 1);
 
   return (
     <SettingsPane>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium">Credit packs</p>
-          <p className="text-muted-foreground text-xs">
-            One-time Stripe purchase · no subscription
+          <h2 className="scroll-mt-24 text-lg font-semibold" id="plans">
+            Plans
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Free to try, then one-time credit packs — no subscription. Credits never expire.
           </p>
         </div>
         <Button onClick={() => setPaywallOpen(true)} size="sm" variant="outline">
@@ -50,12 +75,14 @@ export function BillingSettingsPane({ credits, creditsLoading }: BillingPaneProp
       </div>
 
       {creditsLoading && !credits ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Skeleton className="h-80 rounded-lg" />
+          <Skeleton className="h-80 rounded-lg" />
           <Skeleton className="h-80 rounded-lg" />
           <Skeleton className="h-80 rounded-lg" />
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <PlanCard
             button={{
               label: "Current",
@@ -63,39 +90,62 @@ export function BillingSettingsPane({ credits, creditsLoading }: BillingPaneProp
               variant: "outline",
               onClick: () => undefined,
             }}
-            description="Scan on demand. Buy credits when you need more."
+            description={freePlan?.description ?? "Scan on demand. Buy credits when you need more."}
             features={[
-              { text: `${credits?.credits ?? 0} credits remaining` },
+              { text: `${credits?.credits ?? freePlan?.credits ?? 0} credits remaining` },
               { text: `${scanCost} credit per OPG scan` },
               { text: "Patient history included" },
+              { text: "No card required" },
             ]}
-            name="Free"
-            priceLabel="$0"
             intervalLabel="mo"
+            name={freePlan?.name ?? "Free"}
+            priceLabel="$0"
           />
-          <PlanCard
-            action={<Badge>Most popular</Badge>}
-            button={{
-              label: buying ? "Loading..." : `Get ${packCredits || ""} credits`.trim(),
-              disabled: buying || !credits,
-              variant: "cta",
-              onClick: () => void handleBuy(),
-            }}
-            description="One-time credit pack. Credits never expire."
-            featured
-            features={[
-              { text: `${packCredits} scan credits` },
-              {
-                text: `~${Math.floor(packCredits / scanCost)} OPG scans`,
-                overageText: `${scanCost} credit per scan`,
-              },
-              { text: "Stripe checkout" },
-              { text: "Stacks with current balance" },
-            ]}
-            intervalLabel="pack"
-            name="Credit Pack"
-            priceLabel={`$${packPrice.toFixed(packPrice % 1 === 0 ? 0 : 2)}`}
-          />
+
+          {(paidPlans.length ? paidPlans : CAVIO_PAID_PLAN_DEFS.map((p) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            price_cents: p.priceCents,
+            credits: p.credits,
+            featured: Boolean(p.featured),
+          }))).map((plan) => {
+            const featured = plan.id === featuredId || Boolean(plan.featured);
+            const priceUsd = plan.price_cents / 100;
+            const scans = Math.floor(plan.credits / scanCost);
+            return (
+              <PlanCard
+                action={featured ? <Badge>Most popular</Badge> : undefined}
+                button={{
+                  label:
+                    buyingPlan === plan.id
+                      ? "Loading..."
+                      : `Get ${plan.credits} credits`,
+                  disabled: buyingPlan !== null,
+                  variant: featured ? "cta" : "outline",
+                  onClick: () => void handleBuy(plan.id),
+                }}
+                description={plan.description}
+                featured={featured}
+                features={[
+                  { text: `${plan.credits} scan credits` },
+                  {
+                    text: `~${scans} OPG scans`,
+                    overageText: `${scanCost} credit per scan`,
+                  },
+                  { text: "Credits never expire" },
+                  { text: "Stripe checkout" },
+                  ...(plan.id === CAVIO_PLANS.CLINIC
+                    ? [{ text: "Priority support" }]
+                    : [{ text: "Stacks with current balance" }]),
+                ]}
+                intervalLabel="pack"
+                key={plan.id}
+                name={plan.name}
+                priceLabel={formatPlanPrice(priceUsd)}
+              />
+            );
+          })}
         </div>
       )}
 

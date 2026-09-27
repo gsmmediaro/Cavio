@@ -6,12 +6,18 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { createCheckoutSession, type CreditsInfo } from "@/api/client";
 import { PlanCard } from "@/components/billing/plan-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  CAVIO_PAID_PLAN_DEFS,
+  CAVIO_PLANS,
+  FEATURED_PLAN_ID,
+  formatPlanPrice,
+} from "@/constants/plans";
 
 type UpgradePaywallDialogProps = {
   open: boolean;
@@ -22,39 +28,48 @@ type UpgradePaywallDialogProps = {
   description?: string;
 };
 
-/**
- * Port of Notra GeoUpgradeDialog / billing plan grid.
- * Cavio: single Stripe credit pack as featured plan card (green CTA).
- */
+/** Port of Notra GeoUpgradeDialog — Cavio Starter/Pro/Clinic packs. */
 export function UpgradePaywallDialog({
   open,
   onOpenChange,
   credits,
   loadingCredits = false,
   title = "Upgrade your credits",
-  description = "Buy a credit pack to keep running OPG caries scans. One credit per scan.",
+  description = "Pick a credit pack to keep running OPG caries scans. One credit per scan.",
 }: UpgradePaywallDialogProps) {
-  const [buying, setBuying] = useState(false);
+  const [buyingPlan, setBuyingPlan] = useState<string | null>(null);
 
-  const handleBuy = async () => {
-    setBuying(true);
+  const paidPlans = useMemo(() => {
+    const fromApi = credits?.plans?.filter((p) => p.id !== CAVIO_PLANS.FREE);
+    if (fromApi && fromApi.length > 0) return fromApi;
+    return CAVIO_PAID_PLAN_DEFS.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      price_cents: p.priceCents,
+      credits: p.credits,
+      featured: Boolean(p.featured),
+    }));
+  }, [credits]);
+
+  const featuredId = credits?.featured_plan_id ?? FEATURED_PLAN_ID;
+  const scanCost = Math.max(credits?.scan_cost ?? 1, 1);
+
+  const handleBuy = async (planId: string) => {
+    setBuyingPlan(planId);
     try {
-      const { checkout_url } = await createCheckoutSession();
+      const { checkout_url } = await createCheckoutSession(planId);
       window.location.href = checkout_url;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Checkout failed";
       toast.error(msg, { description: "Stripe checkout could not start." });
-      setBuying(false);
+      setBuyingPlan(null);
     }
   };
 
-  const packPrice = credits ? credits.pack_price_cents / 100 : 0;
-  const packCredits = credits?.pack_credits ?? 0;
-  const scanCost = Math.max(credits?.scan_cost ?? 1, 1);
-
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent className="flex max-h-[90svh] flex-col overflow-hidden sm:max-w-3xl">
+      <ResponsiveDialogContent className="flex max-h-[90svh] flex-col overflow-hidden sm:max-w-5xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{title}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>{description}</ResponsiveDialogDescription>
@@ -62,59 +77,49 @@ export function UpgradePaywallDialog({
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
           {loadingCredits && !credits ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Skeleton className="h-80 rounded-lg" />
-              <Skeleton className="h-80 rounded-lg" />
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Skeleton className="h-96 rounded-lg" />
+              <Skeleton className="h-96 rounded-lg" />
+              <Skeleton className="h-96 rounded-lg" />
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <PlanCard
-                button={{
-                  label: "Current plan",
-                  disabled: true,
-                  variant: "outline",
-                  onClick: () => undefined,
-                }}
-                description="Pay as you go — scan when you need, buy credits when you run out."
-                features={[
-                  { text: `${credits?.credits ?? 0} credits remaining` },
-                  { text: `${scanCost} credit per OPG scan` },
-                  { text: "History & patient records" },
-                  { text: "No subscription required" },
-                ]}
-                highlighted={false}
-                name="Free"
-                priceLabel="$0"
-                intervalLabel="mo"
-              />
-              <PlanCard
-                action={<Badge>Most popular</Badge>}
-                button={{
-                  label: buying
+            <div className="grid gap-4 lg:grid-cols-3">
+              {paidPlans.map((plan) => {
+                const featured = plan.id === featuredId || Boolean(plan.featured);
+                const priceUsd = plan.price_cents / 100;
+                const scans = Math.floor(plan.credits / scanCost);
+                const buyLabel =
+                  buyingPlan === plan.id
                     ? "Loading..."
-                    : credits
-                      ? `Get ${packCredits} credits`
-                      : "Buy credits",
-                  disabled: buying || !credits,
-                  variant: "cta",
-                  onClick: () => void handleBuy(),
-                }}
-                description="One-time credit pack via Stripe. Credits never expire."
-                featured
-                features={[
-                  { text: `${packCredits} scan credits` },
-                  {
-                    text: `~${Math.floor(packCredits / scanCost)} OPG scans`,
-                    overageText: `${scanCost} credit per scan`,
-                  },
-                  { text: "Instant Stripe checkout" },
-                  { text: "Works with existing balance" },
-                ]}
-                highlighted={false}
-                intervalLabel="pack"
-                name="Credit Pack"
-                priceLabel={`$${packPrice.toFixed(packPrice % 1 === 0 ? 0 : 2)}`}
-              />
+                    : "Get " + String(plan.credits) + " credits";
+                return (
+                  <PlanCard
+                    action={featured ? <Badge>Most popular</Badge> : undefined}
+                    button={{
+                      label: buyLabel,
+                      disabled: buyingPlan !== null,
+                      variant: featured ? "cta" : "outline",
+                      onClick: () => void handleBuy(plan.id),
+                    }}
+                    description={plan.description}
+                    featured={featured}
+                    features={[
+                      { text: String(plan.credits) + " scan credits" },
+                      {
+                        text: "~" + String(scans) + " OPG scans",
+                        overageText: String(scanCost) + " credit per scan",
+                      },
+                      { text: "Credits never expire" },
+                      { text: "Instant Stripe checkout" },
+                    ]}
+                    highlighted={false}
+                    intervalLabel="pack"
+                    key={plan.id}
+                    name={plan.name}
+                    priceLabel={formatPlanPrice(priceUsd)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

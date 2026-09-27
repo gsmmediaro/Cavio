@@ -583,7 +583,7 @@ export default function AnalyzeScan() {
           </div>
         )}
       </div>
-        {paywallDialog}
+      {paywallDialog}
       </>
     );
   }
@@ -612,7 +612,7 @@ export default function AnalyzeScan() {
           <AnalyzeResultSkeleton />
         </ChatAssistantBlock>
       </div>
-        {paywallDialog}
+      {paywallDialog}
       </>
     );
   }
@@ -759,7 +759,7 @@ export default function AnalyzeScan() {
           </div>
         </div>
       </div>
-        {paywallDialog}
+      {paywallDialog}
       </>
     );
   }
