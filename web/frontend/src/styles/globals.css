@@ -4,12 +4,17 @@
 @source "../vendor/notra-ui/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
-@font-face {
-  font-family: "Exposure Trial";
-  src: url("/ExposureTrial.otf") format("opentype"), local("Exposure Trial"), local("ExposureTrial");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+/*
+ * Typography from Notra SoT (apps/crack-workbench + apps/dashboard layouts):
+ *   Inter        → --font-inter → --font-sans  (next/font/google)
+ *   Geist Mono   → --font-geist-mono → --font-mono
+ * Loaded via Google Fonts CDN in index.html (same families as next/font/google).
+ */
+:root {
+  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-geist-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 /*
@@ -18,8 +23,11 @@
  * Light mode is the default (no .dark on <html> until user toggles).
  */
 @theme inline {
-  --font-display: "Exposure Trial", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-body: var(--font-sans);
+  /* Override vendored system stacks with Notra Inter / Geist Mono */
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-inter);
+  --font-body: var(--font-inter);
 
   /* Clinical verdict colours (Cavio product) */
   --color-leaf: var(--primary);
@@ -52,8 +60,10 @@
   --sidebar-w: var(--sidebar-width, 16rem);
   --panel-w: 280px;
   --shadow-card: var(--shadow-sm);
-  --font-body: var(--font-sans);
-  --font-display: "Exposure Trial", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-body: var(--font-inter);
+  --font-display: var(--font-inter);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
   /*
    * Light neutrals = Notra white/zinc (no cream/parchment).
    * Only primary/ring/sidebar-primary stay Cavio green (set in vendored Notra globals).
@@ -87,12 +97,20 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     text-wrap: balance;
   }
 
   p {
     text-wrap: pretty;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre,
+  .font-mono {
+    font-family: var(--font-mono);
   }
 }
 
