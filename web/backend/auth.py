@@ -115,12 +115,26 @@ def _decode_firebase_token(token: str) -> AuthUser:
     if not certs:
         raise HTTPException(status_code=401, detail="Firebase certs unavailable")
 
+    from cryptography.x509 import load_pem_x509_certificate
+
     last_error: Exception | None = None
-    for _kid, cert_pem in certs.items():
+    header = jwt.get_unverified_header(token)
+    preferred_kid = str(header.get("kid") or "")
+    ordered = []
+    if preferred_kid and preferred_kid in certs:
+        ordered.append((preferred_kid, certs[preferred_kid]))
+    ordered.extend((k, v) for k, v in certs.items() if k != preferred_kid)
+
+    for _kid, cert_pem in ordered:
         try:
+            if isinstance(cert_pem, str):
+                cert_pem_bytes = cert_pem.encode("utf-8")
+            else:
+                cert_pem_bytes = cert_pem
+            public_key = load_pem_x509_certificate(cert_pem_bytes).public_key()
             payload = jwt.decode(
                 token,
-                cert_pem,
+                public_key,
                 algorithms=["RS256"],
                 audience=settings.firebase_project_id,
                 issuer=f"https://securetoken.google.com/{settings.firebase_project_id}",
@@ -131,6 +145,9 @@ def _decode_firebase_token(token: str) -> AuthUser:
                 raise HTTPException(status_code=401, detail="Invalid Firebase token")
             return AuthUser(uid=uid, email=email, provider="firebase")
         except jwt.PyJWTError as exc:
+            last_error = exc
+            continue
+        except ValueError as exc:
             last_error = exc
             continue
     raise HTTPException(
