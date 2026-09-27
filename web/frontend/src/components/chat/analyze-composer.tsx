@@ -1,9 +1,11 @@
-﻿/**
+/**
  * Cavio Analyze composer — structure matches Notra Studio agent chat composer
- * (Composer.Frame → input area → Composer.Toolbar → Attach + controls + Send CTA).
+ * (Composer.Frame → input area → Composer.Toolbar → Attach + controls + Send).
  */
 import { type DragEvent, type KeyboardEvent, type ReactNode } from "react";
-import { ArrowUp, Paperclip } from "lucide-react";
+import { ArrowUp02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Paperclip } from "lucide-react";
 import { Composer } from "@/components/composer/composer-shell";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -199,7 +201,6 @@ export function AnalyzeComposer({
             </Tabs>
 
             <Composer.Send
-              active={canSend}
               busy={loading}
               disabled={!canSend}
               label={file ? sendLabel : getStartedLabel}
@@ -212,7 +213,11 @@ export function AnalyzeComposer({
                 if (file) onAnalyze();
               }}
             >
-              <ArrowUp className="size-3.5" strokeWidth={2.25} />
+              <HugeiconsIcon
+                className="size-4"
+                icon={ArrowUp02Icon}
+                strokeWidth={2}
+              />
             </Composer.Send>
           </Composer.Toolbar>
         </section>

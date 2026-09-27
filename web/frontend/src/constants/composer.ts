@@ -1,21 +1,10 @@
-﻿/** Ported from usenotra/notra-src apps/dashboard/src/constants/composer.ts */
+/** Ported from usenotra/notra-src apps/dashboard/src/constants/composer.ts — exact strings */
 export const COMPOSER_TOOLBAR_BUTTON =
   "inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50";
 
-/**
- * Send control — Notra Studio agent chat send + Cavio green primary CTA glow
- * (cta-gradient-primary from packages/ui/src/styles/cta-button.css).
- * Active/ready: exact Notra CTA primary (gradient + white inset inner glow).
- * Idle/disabled: muted circle (same footprint as Notra COMPOSER_SEND_BUTTON).
- */
+/** Exact Notra agent dashboard Composer.Send (size-7 circle, foreground fill — no CTA glow) */
 export const COMPOSER_SEND_BUTTON =
-  "ml-auto flex size-7 shrink-0 items-center justify-center rounded-full transition-[background-color,transform,box-shadow,opacity] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.96]";
-
-export const COMPOSER_SEND_BUTTON_ACTIVE =
-  "cta-gradient-primary text-white border-0";
-
-export const COMPOSER_SEND_BUTTON_IDLE =
-  "bg-muted text-muted-foreground shadow-none";
+  "ml-auto flex size-7 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[background-color,transform] hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.96]";
 
 export const COMPOSER_FRAME_TRANSITION =
   "transition-[background-color,padding-top,padding-left,padding-right,padding-bottom] duration-200 ease-out motion-reduce:transition-none";

@@ -1,9 +1,15 @@
-﻿/**
+/**
  * Ported from usenotra/notra-src apps/dashboard/src/components/composer/composer-shell.tsx
- * Structure matches Notra Studio agent chat composer exactly.
- * Send uses Cavio green CTA (cta-gradient-primary) with inner glow when active.
+ * Structure + Send classes match Notra Studio agent chat composer exactly.
+ * Auth CTAs use separate CtaButton (green cta-gradient-primary) — Send does not.
  */
-import { ArrowUp, Loader2, Pencil, X } from "lucide-react";
+import {
+  ArrowUp02Icon,
+  Cancel01Icon,
+  Edit02Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Loader2 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import {
   Tooltip,
@@ -17,8 +23,6 @@ import {
   COMPOSER_NUDGE_ENTER,
   COMPOSER_NUDGE_GRID_TRANSITION,
   COMPOSER_SEND_BUTTON,
-  COMPOSER_SEND_BUTTON_ACTIVE,
-  COMPOSER_SEND_BUTTON_IDLE,
   COMPOSER_TOOLBAR_BUTTON,
 } from "@/constants/composer";
 import { cn } from "@/lib/utils";
@@ -144,7 +148,7 @@ function ComposerChip({
           onClick={onSteer}
           type="button"
         >
-          <ArrowUp className="size-3" />
+          <HugeiconsIcon className="size-3" icon={ArrowUp02Icon} />
         </button>
       ) : null}
       {onEdit && !pending ? (
@@ -154,7 +158,7 @@ function ComposerChip({
           onClick={onEdit}
           type="button"
         >
-          <Pencil className="size-3" />
+          <HugeiconsIcon className="size-3" icon={Edit02Icon} />
         </button>
       ) : null}
       {onRemove ? (
@@ -164,7 +168,7 @@ function ComposerChip({
           onClick={onRemove}
           type="button"
         >
-          <X className="size-3" />
+          <HugeiconsIcon className="size-3" icon={Cancel01Icon} />
         </button>
       ) : null}
     </span>
@@ -197,25 +201,22 @@ function ComposerSend({
   children,
   busy = false,
   disabled = false,
-  active = false,
   tooltip,
   label,
   onClick,
 }: ComposerSendProps) {
-  const content = busy ? <Loader2 className="size-3.5 animate-spin" /> : children;
-  const className = cn(
-    COMPOSER_SEND_BUTTON,
-    active && !disabled ? COMPOSER_SEND_BUTTON_ACTIVE : COMPOSER_SEND_BUTTON_IDLE,
-    disabled ? "pointer-events-none" : null,
-    disabled && !busy ? "opacity-30" : null,
-  );
+  const content = busy ? <Loader2 className="size-4 animate-spin" /> : children;
 
   const trigger = (
     <button
       aria-busy={busy}
       aria-disabled={disabled}
       aria-label={label}
-      className={className}
+      className={cn(
+        COMPOSER_SEND_BUTTON,
+        disabled ? "pointer-events-none" : null,
+        disabled && !busy ? "opacity-30" : null,
+      )}
       onClick={disabled ? undefined : onClick}
       type="button"
     >
@@ -235,7 +236,11 @@ function ComposerSend({
             aria-busy={busy}
             aria-disabled={disabled}
             aria-label={label}
-            className={className}
+            className={cn(
+              COMPOSER_SEND_BUTTON,
+              disabled ? "pointer-events-none" : null,
+              disabled && !busy ? "opacity-30" : null,
+            )}
             onClick={disabled ? undefined : onClick}
             type="button"
           />

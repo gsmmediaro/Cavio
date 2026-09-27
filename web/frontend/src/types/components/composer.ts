@@ -1,4 +1,4 @@
-﻿import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 export type ComposerFrameProps = {
   children: ReactNode;
@@ -33,12 +33,11 @@ export type ComposerToolbarProps = {
   className?: string;
 };
 
+/** Matches Notra apps/dashboard ComposerSendProps (no active/CTA glow) */
 export type ComposerSendProps = {
   children?: ReactNode;
   busy?: boolean;
   disabled?: boolean;
-  /** When true, apply Notra CTA primary gradient + inner glow */
-  active?: boolean;
   tooltip?: string;
   label: string;
   onClick?: () => void;
