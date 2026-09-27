@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { MessageCircle, MoreVertical, Send, FileText, Trash2, X } from "lucide-react";
+import { MessageCircle, MoreVertical, Send, FileText, Trash2 } from "lucide-react";
 import {
   deleteScanFromFirestore,
   getHistoryFromFirestore,
@@ -11,6 +10,16 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 function makeTimeAgo(t: (key: string, opts?: Record<string, unknown>) => string) {
   return function timeAgo(timestamp: string | number): string {
@@ -370,103 +379,32 @@ export default function History() {
         </div>
       )}
 
-      {/* Delete confirmation modal */}
-      <AnimatePresence>
-        {deleteTarget && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => { if (!deleting) setDeleteTarget(null); }}
-              style={{
-                position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
-                backdropFilter: "blur(4px)", zIndex: 100,
-                display: "flex", alignItems: "center", justifyContent: "center",
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("history.delete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("history.delete.message")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>{t("history.delete.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmDelete();
               }}
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 6 }}
-                transition={{ type: "spring", duration: 0.35, bounce: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: "var(--color-surface)",
-                  borderRadius: 18,
-                  padding: "28px 28px 24px",
-                  width: 420,
-                  maxWidth: "90vw",
-                  boxShadow: "0 16px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.04)",
-                  position: "relative",
-                }}
-              >
-                {/* Close */}
-                <button
-                  onClick={() => { if (!deleting) setDeleteTarget(null); }}
-                  style={{
-                    position: "absolute", top: 14, right: 14,
-                    background: "none", border: "none", cursor: "pointer",
-                    color: "var(--color-ink-tertiary)", padding: 4, display: "flex",
-                    alignItems: "center", justifyContent: "center", borderRadius: 8,
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "var(--color-ink)"}
-                  onMouseLeave={(e) => e.currentTarget.style.color = "var(--color-ink-tertiary)"}
-                >
-                  <X size={18} />
-                </button>
-
-                <h3 style={{
-                  fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 500,
-                  color: "var(--color-ink)", margin: "0 0 10px", lineHeight: 1.3,
-                }}>
-                  {t("history.delete.title")}
-                </h3>
-                <p style={{
-                  fontSize: 14, color: "var(--color-ink-secondary)", lineHeight: 1.6,
-                  margin: "0 0 24px", fontFamily: "var(--font-body)",
-                }}>
-                  {t("history.delete.message")}
-                </p>
-
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    onClick={confirmDelete}
-                    disabled={deleting}
-                    style={{
-                      flex: 1, padding: "13px 0", borderRadius: 12, border: "none",
-                      background: "#c0392b", color: "white", fontSize: 14, fontWeight: 600,
-                      cursor: deleting ? "default" : "pointer", fontFamily: "var(--font-body)",
-                      opacity: deleting ? 0.7 : 1, transition: "opacity 0.15s, background 0.15s",
-                    }}
-                    onMouseEnter={(e) => { if (!deleting) e.currentTarget.style.background = "#a93226"; }}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "#c0392b"}
-                  >
-                    {deleting ? t("history.delete.deleting") : t("history.delete.confirm")}
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(null)}
-                    disabled={deleting}
-                    style={{
-                      flex: 1, padding: "13px 0", borderRadius: 12,
-                      border: "none", background: "rgba(66, 133, 244, 0.08)",
-                      color: "#4285F4", fontSize: 14, fontWeight: 600,
-                      cursor: "pointer", fontFamily: "var(--font-body)",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(66, 133, 244, 0.14)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(66, 133, 244, 0.08)"}
-                  >
-                    {t("history.delete.cancel")}
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              {deleting ? t("history.delete.deleting") : t("history.delete.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

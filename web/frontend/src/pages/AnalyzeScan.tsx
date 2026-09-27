@@ -11,7 +11,10 @@ import {
   type AnalysisResult,
   type ModelInfo,
   type ScanRecord,
+  getCredits,
+  type CreditsInfo,
 } from "../api/client";
+import { UpgradePaywallDialog } from "../components/billing/upgrade-paywall-dialog";
 import FindingsTable from "../components/FindingsTable";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -85,6 +88,9 @@ export default function AnalyzeScan() {
   const [preview, setPreview] = useState<string | null>(null);
   const [savedScanId, setSavedScanId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallCredits, setPaywallCredits] = useState<CreditsInfo | null>(null);
+  const [paywallCreditsLoading, setPaywallCreditsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [resultImageError, setResultImageError] = useState(false);
   const [error, setError] = useState("");
@@ -316,6 +322,12 @@ export default function AnalyzeScan() {
         setError(t("analyze.errors.authRequired", { defaultValue: "Please sign in to run a scan." }));
       } else if (status === 402 || /insufficient credits/i.test(msg)) {
         setError(t("analyze.errors.noCredits", { defaultValue: "No credits left. Buy a credit pack in Settings." }));
+        setPaywallCreditsLoading(true);
+        void getCredits()
+          .then((info) => setPaywallCredits(info))
+          .catch(() => setPaywallCredits(null))
+          .finally(() => setPaywallCreditsLoading(false));
+        setPaywallOpen(true);
       } else if (status === 429 || /rate limit/i.test(msg)) {
         setError(t("analyze.errors.rateLimited", { defaultValue: "Too many requests. Please wait and try again." }));
       } else if (status === 413 || /too large/i.test(msg)) {
@@ -337,9 +349,22 @@ export default function AnalyzeScan() {
 
   const isWelcome = !result && !loading;
 
+  const paywallDialog = (
+    <UpgradePaywallDialog
+      open={paywallOpen}
+      onOpenChange={setPaywallOpen}
+      credits={paywallCredits}
+      loadingCredits={paywallCreditsLoading}
+      title="You are out of credits"
+      description="Buy a credit pack to continue scanning. One credit per OPG caries scan."
+    />
+  );
+
+
   /* ───────── WELCOME STATE ───────── */
   if (isWelcome) {
     return (
+      <>
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={(e) => {
@@ -558,12 +583,15 @@ export default function AnalyzeScan() {
           </div>
         )}
       </div>
+        {paywallDialog}
+      </>
     );
   }
 
   /* ───────── LOADING / STREAMING STATE (Notra shimmer) ───────── */
   if (loading && !result) {
     return (
+      <>
       <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-4 pb-8 pt-8 md:px-8 md:pt-12">
         {(file && preview) || patientName ? (
           <div className="mb-6">
@@ -584,6 +612,8 @@ export default function AnalyzeScan() {
           <AnalyzeResultSkeleton />
         </ChatAssistantBlock>
       </div>
+        {paywallDialog}
+      </>
     );
   }
 
@@ -613,6 +643,7 @@ export default function AnalyzeScan() {
     };
 
     return (
+      <>
       <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-4 pb-8 pt-6 md:px-8 md:pt-10">
         <div className="mb-5 flex items-center gap-2">
           <Button
@@ -728,6 +759,8 @@ export default function AnalyzeScan() {
           </div>
         </div>
       </div>
+        {paywallDialog}
+      </>
     );
   }
 

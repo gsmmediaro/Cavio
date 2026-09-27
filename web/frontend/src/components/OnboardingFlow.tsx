@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { ChevronDown, Loader2Icon, X } from "lucide-react";
+import { ChevronDown, Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { db } from "../firebase";
@@ -12,6 +12,13 @@ import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { cn } from "@notra/ui/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 
 /**
  * Cavio onboarding content for AuthShell mode="onboarding".
@@ -185,29 +192,24 @@ export default function OnboardingFlow() {
     setSaving(false);
   };
 
-  const legalPopupEl = legalPopup && (
-    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/35 backdrop-blur-[4px]">
-      <div className="bg-background flex max-h-[70vh] w-[500px] max-w-[90vw] flex-col overflow-hidden rounded-xl border shadow-lg">
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <h3 className="text-foreground text-lg font-medium">
+  const legalPopupEl = (
+    <Dialog open={Boolean(legalPopup)} onOpenChange={(open) => { if (!open) setLegalPopup(null); }}>
+      <DialogContent className="flex max-h-[70vh] max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogHeader className="border-b px-5 py-4">
+          <DialogTitle>
             {legalPopup === "terms"
               ? t("onboarding.legalModal.terms")
               : t("onboarding.legalModal.privacy")}
-          </h3>
-          <button
-            type="button"
-            onClick={() => setLegalPopup(null)}
-            className="text-muted-foreground hover:text-foreground rounded-md p-1"
-            aria-label="Close"
-          >
-            <X className="size-[18px]" />
-          </button>
-        </div>
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Legal document
+          </DialogDescription>
+        </DialogHeader>
         <div className="flex-1 overflow-y-auto px-5 py-2 pb-6">
           {legalPopup === "terms" ? <TermsContent /> : <PrivacyContent />}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 
   if (step === 0) {
