@@ -143,9 +143,16 @@ export default function Layout({ children }: Props) {
                     patients.slice(0, 10).map((p) => (
                       <SidebarMenuItem key={p.name}>
                         <SidebarMenuButton
+                          data-cavio="past-chat"
+                          type="button"
                           isActive={selectedPatient === p.name}
                           tooltip={p.name}
-                          onClick={() => handlePatientClick(p.name)}
+                          className="relative z-10"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePatientClick(p.name);
+                          }}
                         >
                           <MessageCircle className="size-4" />
                           <span className="truncate">{p.name}</span>

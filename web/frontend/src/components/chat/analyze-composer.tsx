@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Cavio Analyze composer — structure matches Notra Studio agent chat composer
  * (Composer.Frame → input area → Composer.Toolbar → Attach + controls + Send).
  */
-import { type DragEvent, type KeyboardEvent, type ReactNode } from "react";
+import { type DragEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useEffect } from "react";
 import { ArrowUp02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Paperclip } from "lucide-react";
@@ -67,10 +67,27 @@ export function AnalyzeComposer({
   className,
 }: AnalyzeComposerProps) {
   const patientFieldId = "cavio-analyze-patient";
+  const fileInputId = "cavio-analyze-file";
   const canSend = Boolean(file) && !loading;
   const focusPatient = () => {
     document.getElementById(patientFieldId)?.focus();
   };
+
+  // Clear stuck drag overlay (Escape / dragend outside) so ::after never eats clicks.
+  useEffect(() => {
+    const clear = () => onDragOverChange?.(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") clear();
+    };
+    window.addEventListener("dragend", clear);
+    window.addEventListener("drop", clear);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("dragend", clear);
+      window.removeEventListener("drop", clear);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onDragOverChange]);
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
@@ -80,6 +97,8 @@ export function AnalyzeComposer({
   const handleDragLeave = (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const next = e.relatedTarget as Node | null;
+    if (next && e.currentTarget.contains(next)) return;
     onDragOverChange?.(false);
   };
   const handleDrop = (e: DragEvent) => {
@@ -90,7 +109,7 @@ export function AnalyzeComposer({
     if (f) onFileDrop(f);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (file) onAnalyze();
@@ -100,6 +119,21 @@ export function AnalyzeComposer({
 
   return (
     <div className={cn("w-full max-w-[680px]", className)}>
+      {/* File input outside the click-to-focus section so attach stays reliable */}
+      <input
+        ref={fileInputRef}
+        id={fileInputId}
+        type="file"
+        accept={accept}
+        className="sr-only"
+        tabIndex={-1}
+        onChange={(e) => {
+          const f = e.target.files?.[0] ?? null;
+          onFileInputChange(f);
+          e.currentTarget.value = "";
+        }}
+      />
+
       <Composer.Frame
         nudge={nudge}
         className={cn(
@@ -110,25 +144,15 @@ export function AnalyzeComposer({
           aria-label="Analyze scan composer"
           className={cn(
             "relative",
-            dragOver ? "after:absolute after:inset-0 after:z-10 after:rounded-[inherit] after:bg-primary/5 after:ring-2 after:ring-inset after:ring-primary/30" : null,
+            // after:pointer-events-none — decorative drag ring must NEVER block attach/tabs/send
+            dragOver
+              ? "after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-[inherit] after:bg-primary/5 after:ring-2 after:ring-inset after:ring-primary/30"
+              : null,
           )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={focusPatient}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0] ?? null;
-              onFileInputChange(f);
-              e.currentTarget.value = "";
-            }}
-          />
-
           {/* Attachment chips row (Notra nudge/chips pattern) */}
           {file && preview ? (
             <div className="flex items-center gap-2 border-b border-border/60 px-3 pt-3 pb-2">
@@ -152,8 +176,11 @@ export function AnalyzeComposer({
             </div>
           ) : null}
 
-          {/* Input area — same relative host as Notra chat editor */}
-          <div className="bg-background relative flex min-w-0 flex-col rounded-t-[13px]">
+          {/* Input area — click focuses patient field */}
+          <div
+            className="bg-background relative flex min-w-0 flex-col rounded-t-[13px]"
+            onClick={focusPatient}
+          >
             <div className="flex w-full min-w-0 items-center rounded-t-[12px]">
               <div className="relative flex min-w-0 flex-1 cursor-text transition-colors">
                 <Input
@@ -172,25 +199,32 @@ export function AnalyzeComposer({
             </div>
           </div>
 
-          {/* Toolbar — Attach + modality + Send (Notra Studio layout) */}
-          <Composer.Toolbar>
+          {/* Toolbar above any decorative overlays */}
+          <Composer.Toolbar className="relative z-20">
             <Composer.ToolbarButton
               aria-label={file ? replaceLabel : attachLabel}
-              className="size-7 justify-center px-0"
+              className="relative z-20 size-7 justify-center px-0"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 onPickFile();
               }}
               type="button"
             >
-              <Paperclip className="size-4" />
+              <Paperclip className="pointer-events-none size-4" />
             </Composer.ToolbarButton>
 
             <Tabs
               value={modality}
               onValueChange={(v) => onModalityChange(v as "Panoramic" | "Bitewing")}
+              className="relative z-20"
             >
-              <TabsList variant="default" className="h-7">
+              <TabsList
+                variant="default"
+                className="h-7"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <TabsTrigger value="Panoramic" className="px-2.5 text-xs">
                   Panoramic
                 </TabsTrigger>
@@ -209,7 +243,8 @@ export function AnalyzeComposer({
                   ? "Enter to analyze. Attach a scan first if empty."
                   : "Attach a panoramic or bitewing to analyze"
               }
-              onClick={() => {
+              onClick={(e) => {
+                e?.stopPropagation?.();
                 if (file) onAnalyze();
               }}
             >

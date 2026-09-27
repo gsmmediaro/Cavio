@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getCredits, type CreditsInfo } from "../api/client";
@@ -11,6 +11,7 @@ import {
   type CavioSettingsSection,
 } from "../components/settings/settings-constants";
 import { SettingsShell } from "../components/settings/settings-shell";
+import { SettingsShellSkeleton } from "../components/chat/notra-chat-states";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -74,6 +75,10 @@ export default function Settings() {
   const lang = (i18n.language || "en").startsWith("ro") ? "ro" : "en";
 
   void t; // keep i18n hook wired for future labels
+
+  if (user && creditsLoading && !credits && !creditsError) {
+    return <SettingsShellSkeleton />;
+  }
 
   return (
     <SettingsShell onSectionChange={setSection} section={section}>

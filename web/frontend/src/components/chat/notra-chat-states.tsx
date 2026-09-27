@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import { AlertCircleIcon, InboxIcon, RefreshCwIcon } from "lucide-react";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import { Loader } from "@notra/ui/components/ai-elements/loader";
@@ -152,34 +152,123 @@ export function ErrorBanner({
   );
 }
 
-/** Settings credits card skeleton */
+/** Settings credits card skeleton — mirrors CreditSummaryCards 3-col grid */
 export function SettingsCreditsSkeleton() {
   return (
-    <div className="space-y-4 rounded-xl border border-border p-6" aria-busy="true">
-      <div className="space-y-2">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-4 w-64 max-w-full" />
+    <div className="space-y-4" aria-busy="true" aria-label="Loading credits">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Skeleton className="h-28 rounded-xl" />
+        <Skeleton className="h-28 rounded-xl" />
+        <Skeleton className="h-28 rounded-xl" />
       </div>
-      <Skeleton className="h-10 w-24" />
-      <Skeleton className="h-10 w-40" />
+      <div className="flex gap-2">
+        <Skeleton className="h-9 w-28 rounded-md" />
+        <Skeleton className="h-9 w-20 rounded-md" />
+      </div>
     </div>
   );
 }
 
-/** Analyze result image / findings skeleton while streaming */
+/**
+ * Full settings shell skeleton — mirrors SettingsShell (nav + header + pane).
+ * Use while settings route / credits are hydrating so layout does not jump.
+ */
+export function SettingsShellSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      aria-busy="true"
+      aria-label="Loading settings"
+      className={cn(
+        "border-border bg-background mx-auto flex w-full max-w-[64rem] flex-1 flex-col overflow-hidden border md:my-6 md:h-[min(44rem,calc(100svh-3rem))] md:rounded-2xl md:shadow-sm",
+        className,
+      )}
+    >
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <nav className="border-border flex shrink-0 flex-col gap-4 border-b px-3 py-3 md:w-56 md:border-r md:border-b-0 md:px-3 md:py-4">
+          {[0, 1].map((g) => (
+            <div className="space-y-2" key={g}>
+              <Skeleton className="mx-2 h-3 w-16" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+            </div>
+          ))}
+        </nav>
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <header className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3.5 md:px-5">
+            <div className="min-w-0 space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-56 max-w-full" />
+            </div>
+            <Skeleton className="size-8 rounded-md" />
+          </header>
+          <div className="min-h-0 flex-1 space-y-4 overflow-hidden px-4 py-4 md:px-5">
+            <SettingsCreditsSkeleton />
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Welcome / composer skeleton — mirrors Analyze welcome (avatars + title + composer).
+ */
+export function AnalyzeComposerSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      aria-busy="true"
+      aria-label="Loading composer"
+      className={cn(
+        "mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center justify-center px-5 py-10 md:px-8",
+        className,
+      )}
+    >
+      <div className="mb-7 flex items-center justify-center">
+        <Skeleton className="size-11 rounded-full" />
+        <Skeleton className="-ml-2.5 size-11 rounded-full" />
+        <Skeleton className="-ml-2.5 size-11 rounded-full" />
+      </div>
+      <Skeleton className="mb-6 h-12 w-[min(100%,28rem)] rounded-lg md:h-14" />
+      <div className="w-full max-w-[680px] overflow-hidden rounded-2xl border border-border bg-background shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <div className="px-3 py-3">
+          <Skeleton className="h-12 w-full rounded-md" />
+        </div>
+        <div className="flex items-center gap-2 px-2 pb-2">
+          <Skeleton className="size-7 rounded-md" />
+          <Skeleton className="h-7 w-40 rounded-lg" />
+          <Skeleton className="ml-auto size-7 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Result / streaming skeleton — mirrors Analyze result (back+title, image, findings).
+ * Prefer this over a generic card when loading a saved patient or mid-analyze.
+ */
 export function AnalyzeResultSkeleton() {
   return (
-    <div className="flex w-full flex-col gap-3" aria-busy="true">
+    <div className="flex w-full flex-col gap-4" aria-busy="true" aria-label="Loading scan result">
       <div className="flex items-center gap-2">
-        <Skeleton className="size-6 rounded-full" />
-        <Skeleton className="h-4 w-24" />
+        <Skeleton className="size-8 rounded-md" />
+        <Skeleton className="h-5 w-40" />
         <Skeleton className="h-5 w-16 rounded-full" />
       </div>
       <Skeleton className="aspect-[16/9] w-full rounded-2xl" />
-      <div className="space-y-2 rounded-xl border border-border p-4">
+      <div className="space-y-3 rounded-xl border border-border p-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-16" />
+        </div>
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-5/6" />
         <Skeleton className="h-4 w-2/3" />
+        <div className="grid gap-2 pt-2">
+          <Skeleton className="h-9 w-full rounded-md" />
+          <Skeleton className="h-9 w-full rounded-md" />
+          <Skeleton className="h-9 w-full rounded-md" />
+        </div>
       </div>
     </div>
   );

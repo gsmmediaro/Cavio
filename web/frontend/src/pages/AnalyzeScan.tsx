@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+﻿import { useEffect, useRef, useState, useCallback } from "react";
 import { Upload, Pencil, ArrowLeft, Download } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -95,6 +95,22 @@ export default function AnalyzeScan() {
   const [resultImageError, setResultImageError] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  // Clear stuck full-page drag overlay (cavio-dragend-clear)
+  useEffect(() => {
+    const clear = () => setDragOver(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") clear();
+    };
+    window.addEventListener("dragend", clear);
+    window.addEventListener("drop", clear);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("dragend", clear);
+      window.removeEventListener("drop", clear);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
   const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const patientInputRef = useRef<HTMLInputElement>(null);
@@ -335,7 +351,7 @@ export default function AnalyzeScan() {
       } else if (msg.includes("Could not decode image")) {
         setError(t("analyze.errors.invalidImage", { defaultValue: "Could not process this file. Please upload a valid dental X-ray." }));
       } else if (msg.includes("timed out") || msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
-        setError(t("analyze.errors.network", { defaultValue: "Network error — check your connection and try again." }));
+        setError(t("analyze.errors.network", { defaultValue: "Network error â€” check your connection and try again." }));
       } else {
         setError(msg || t("analyze.errors.analysisFailed"));
       }
@@ -361,7 +377,7 @@ export default function AnalyzeScan() {
   );
 
 
-  /* ───────── WELCOME STATE ───────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€ WELCOME STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   if (isWelcome) {
     return (
       <>
@@ -437,7 +453,7 @@ export default function AnalyzeScan() {
           )}
         </AnimatePresence>
 
-        {/* Avatar cluster — Quinn logo + two dental professional avatars */}
+        {/* Avatar cluster â€” Quinn logo + two dental professional avatars */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -449,7 +465,7 @@ export default function AnalyzeScan() {
             marginBottom: 28,
           }}
         >
-          {/* Quinn logo avatar — on the left */}
+          {/* Quinn logo avatar â€” on the left */}
           <div style={{
             width: 44,
             height: 44,
@@ -521,7 +537,7 @@ export default function AnalyzeScan() {
             : t("analyze.home.greeting")}
         </motion.h1>
 
-        {/* Description — only shown to non-logged-in users */}
+        {/* Description â€” only shown to non-logged-in users */}
         {!user && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -588,36 +604,48 @@ export default function AnalyzeScan() {
     );
   }
 
-  /* ───────── LOADING / STREAMING STATE (Notra shimmer) ───────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€ LOADING / STREAMING STATE (Notra shimmer) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   if (loading && !result) {
+    const loadingPatient = Boolean(new URLSearchParams(location.search).get("patient"));
+    // Opening a past chat → mirror result chrome. Fresh analyze → stream under composer-shaped chrome.
+    if (loadingPatient && !file && !preview) {
+      return (
+        <>
+          <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-4 pb-8 pt-6 md:px-8 md:pt-10">
+            <AnalyzeResultSkeleton />
+          </div>
+          {paywallDialog}
+        </>
+      );
+    }
     return (
       <>
-      <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-4 pb-8 pt-8 md:px-8 md:pt-12">
-        {(file && preview) || patientName ? (
-          <div className="mb-6">
-            <ChatUserBubble>
-              <div className="font-medium">{patientName || (file?.name ?? "Scan")}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{modality}</div>
-              {preview ? (
-                <div className="mt-3 overflow-hidden rounded-xl border border-border/50">
-                  <img src={preview} alt="" className="max-h-36 w-full object-cover" />
-                </div>
-              ) : null}
-            </ChatUserBubble>
-          </div>
-        ) : null}
-        <ChatAssistantBlock
-          reasoning={<AnalyzingIndicator label={t("analyze.analyzing", { defaultValue: "Analyzing scan…" })} />}
-        >
-          <AnalyzeResultSkeleton />
-        </ChatAssistantBlock>
-      </div>
-      {paywallDialog}
+        <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-4 pb-8 pt-8 md:px-8 md:pt-12">
+          {(file && preview) || patientName ? (
+            <div className="mb-6">
+              <ChatUserBubble>
+                <div className="font-medium">{patientName || (file?.name ?? "Scan")}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{modality}</div>
+                {preview ? (
+                  <div className="mt-3 overflow-hidden rounded-xl border border-border/50">
+                    <img src={preview} alt="" className="max-h-36 w-full object-cover" />
+                  </div>
+                ) : null}
+              </ChatUserBubble>
+            </div>
+          ) : null}
+          <ChatAssistantBlock
+            reasoning={<AnalyzingIndicator label={t("analyze.analyzing", { defaultValue: "Analyzing scan…" })} />}
+          >
+            <AnalyzeResultSkeleton />
+          </ChatAssistantBlock>
+        </div>
+        {paywallDialog}
       </>
     );
   }
 
-  /* ───────── RESULT VIEW (saved or fresh scan) ───────── */
+  /*  ───────── RESULT VIEW (saved or fresh scan) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   if (result) {
     const savedSuspicionColor = {
       low: { bg: "var(--color-low-bg)", text: "var(--color-low)" },
@@ -680,7 +708,7 @@ export default function AnalyzeScan() {
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
-              {result.modality} · {result.filename || "scan"}
+              {result.modality} Â· {result.filename || "scan"}
             </div>
             {(preview || result.annotated_image_url) && !resultImageError ? (
               <div className="mt-3 overflow-hidden rounded-xl border border-border/60">
@@ -764,6 +792,6 @@ export default function AnalyzeScan() {
     );
   }
 
-  /* No more active state — all results use the unified result view above */
+  /* No more active state â€” all results use the unified result view above */
   return null;
 }

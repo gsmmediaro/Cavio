@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { type CSSProperties, type ElementType, memo, useId } from "react";
 import { cn } from "@notra/ui/lib/utils";
@@ -34,11 +34,7 @@ const ShimmerComponent = ({
       <span className="text-shimmer__text" id={textId}>
         {children}
       </span>
-      <span
-        aria-hidden="true"
-        className="text-shimmer__mask"
-        inert
-      >
+      <span aria-hidden="true" className="text-shimmer__mask">
         {children}
       </span>
     </Component>
