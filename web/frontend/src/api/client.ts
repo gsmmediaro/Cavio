@@ -113,8 +113,57 @@ export interface DailyStats {
 }
 
 export interface ModelInfo {
+  id?: string;
   path: string;
   name: string;
+}
+
+export interface AnalyzeAuth {
+  idToken?: string;
+}
+
+function auth_headers(auth?: AnalyzeAuth): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (auth?.idToken) {
+    headers.Authorization = `Bearer ${auth.idToken}`;
+  }
+  const apiKey = import.meta.env.VITE_API_KEY;
+  if (apiKey) {
+    headers["X-API-Key"] = apiKey;
+  }
+  const trial = import.meta.env.VITE_TRIAL_TOKEN;
+  if (trial) {
+    headers["X-Trial-Token"] = trial;
+  }
+  return headers;
+}
+
+async function read_api_error(res: Response, fallback: string): Promise<Error> {
+  const text = await res.text();
+  try {
+    const data = JSON.parse(text) as { detail?: unknown };
+    if (typeof data.detail === "string" && data.detail.trim()) {
+      return new Error(data.detail);
+    }
+  } catch {
+    // Use status-based fallback; never surface raw HTML/stack traces.
+  }
+  if (res.status === 401) {
+    return new Error("Authentication required");
+  }
+  if (res.status === 413) {
+    return new Error("Image is too large");
+  }
+  if (res.status === 415) {
+    return new Error("Unsupported file type");
+  }
+  if (res.status === 429) {
+    return new Error("Too many analyses. Try again later.");
+  }
+  if (res.status === 503 || res.status === 504) {
+    return new Error("Analysis timed out or the server is busy");
+  }
+  return new Error(fallback);
 }
 
 /* ── Backend API calls (inference stays server-side) ── */
@@ -126,6 +175,7 @@ export async function analyzeImage(
   modality: string,
   useToothAssignment: boolean,
   patientName: string,
+  auth?: AnalyzeAuth,
 ): Promise<AnalysisResult> {
   const form = new FormData();
   form.append("file", file);
@@ -137,8 +187,11 @@ export async function analyzeImage(
   const res = await fetch(build_api_url("/api/analyze"), {
     method: "POST",
     body: form,
+    headers: auth_headers(auth),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    throw await read_api_error(res, "Analysis failed");
+  }
   const data: AnalysisResult = await res.json();
   if (data.annotated_image_url?.startsWith("/")) {
     data.annotated_image_url = build_api_url(data.annotated_image_url);
@@ -147,9 +200,13 @@ export async function analyzeImage(
   return data;
 }
 
-export async function getModels(): Promise<ModelInfo[]> {
-  const res = await fetch(build_api_url("/api/models"));
-  if (!res.ok) throw new Error(`Could not load models (${res.status})`);
+export async function getModels(auth?: AnalyzeAuth): Promise<ModelInfo[]> {
+  const res = await fetch(build_api_url("/api/models"), {
+    headers: auth_headers(auth),
+  });
+  if (!res.ok) {
+    throw await read_api_error(res, `Could not load models (${res.status})`);
+  }
   return res.json();
 }
 

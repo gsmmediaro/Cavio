@@ -77,6 +77,44 @@ def find_models() -> list[str]:
     return models
 
 
+def model_public_id(model_path: str) -> str:
+    """Return a non-filesystem identifier for a weights path."""
+    return Path(model_path).parent.parent.name
+
+
+def resolve_model_ref(ref: str) -> str | None:
+    """Map a public model id or allowlisted path to local weights.
+
+    Rejects arbitrary filesystem paths that are not discovered models.
+    """
+    if not ref or not ref.strip():
+        return None
+    requested = ref.strip()
+    if requested.lower() == "auto":
+        return "auto"
+
+    models = find_models()
+    by_id: dict[str, str] = {}
+    allowed_paths: set[str] = set()
+    for path in models:
+        allowed_paths.add(path)
+        public_id = model_public_id(path)
+        by_id.setdefault(public_id, path)
+
+    if requested in by_id:
+        return by_id[requested]
+    if requested in allowed_paths:
+        return requested
+
+    try:
+        resolved = str(Path(requested).resolve())
+    except (OSError, RuntimeError):
+        return None
+    if resolved in allowed_paths:
+        return resolved
+    return None
+
+
 def pick_model_for_image(height: int, width: int) -> str | None:
     """Auto-select model based on image aspect ratio.
 

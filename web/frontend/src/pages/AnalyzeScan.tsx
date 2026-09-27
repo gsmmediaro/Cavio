@@ -110,22 +110,32 @@ export default function AnalyzeScan() {
   };
 
   useEffect(() => {
-    getModels()
-      .then(setModels)
-      .catch(() => {
-        setError(t("analyze.errors.noModels"));
-      });
-  }, []);
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const idToken = user ? await user.getIdToken() : undefined;
+        const loaded = await getModels({ idToken });
+        if (!cancelled) setModels(loaded);
+      } catch {
+        if (!cancelled) setError(t("analyze.errors.noModels"));
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!models.length || selectedModel) return;
 
     const preferred = models.find((m) => {
-      const raw = `${m.name} ${m.path}`.toLowerCase();
+      const raw = `${m.id || ""} ${m.name} ${m.path}`.toLowerCase();
       return raw.includes("pano_gpu2") || raw.includes("pano_caries_only_gpu2");
     });
 
-    setSelectedModel(preferred?.path || models[0].path);
+    const fallback = models[0].id || models[0].path;
+    setSelectedModel(preferred ? (preferred.id || preferred.path) : fallback);
   }, [models, selectedModel]);
 
   useEffect(() => {
@@ -240,6 +250,7 @@ export default function AnalyzeScan() {
     setResult(null);
     setResultImageError(false);
     try {
+      const idToken = user ? await user.getIdToken() : undefined;
       const res = await analyzeImage(
         file,
         selectedModel,
@@ -247,6 +258,7 @@ export default function AnalyzeScan() {
         selectedModel.toLowerCase().includes("bitewing") ? "Bitewing" : "Panoramic",
         toothAssign,
         patientName,
+        { idToken },
       );
       setResult(res);
 
@@ -298,7 +310,7 @@ export default function AnalyzeScan() {
   const modelOptions = useMemo(() => (
     models.map((m) => {
       const raw = m.name.toLowerCase();
-      const path = m.path.toLowerCase();
+      const path = (m.id || m.path).toLowerCase();
 
       let label = m.name;
       for (const [key, value] of Object.entries(MODEL_DISPLAY)) {
@@ -308,7 +320,7 @@ export default function AnalyzeScan() {
         }
       }
 
-      return { value: m.path, label };
+      return { value: m.id || m.path, label };
     })
   ), [models]);
 
