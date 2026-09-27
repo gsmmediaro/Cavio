@@ -1,1 +1,1 @@
-export { cn } from "cnfast";
+﻿export * from "@notra/ui/lib/utils";

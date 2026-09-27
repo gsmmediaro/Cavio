@@ -1,13 +1,19 @@
-# Vendored from Notra (@notra/ui)
+﻿# Vendored from Notra (@notra/ui) — FULL package
 
-Source: Documents/crack/notra-src/packages/ui (usenotra monorepo local checkout)
-Package: @notra/ui
-Copied files under components/ui and lib/utils.ts + lib/motion.ts are verbatim
-except import path rewrites:
-  @notra/ui/lib/utils           -> ../../lib/utils
-  @notra/ui/lib/motion          -> ../../lib/motion
-  @notra/ui/components/ui/button -> ./button
+Source: Documents/crack/notra-src/packages/ui
+Copied verbatim to `src/vendor/notra-ui` (all components, hooks, lib, styles, types, constants).
 
-"use client" directives left intact (Next-only; no-ops under Vite).
-Cavio green tokens remain in styles/globals.css via CSS variables only.
-nav.tsx is Cavio-local (not present in @notra/ui as a primitive).
+Vite adaptations:
+- `next/image` → `src/shims/next-image.tsx`
+- `next/link` → `src/shims/next-link.tsx` (react-router for internal)
+- `@notra/schemas/*` / `@notra/utils/*` → thin stubs under `src/vendor/notra-schemas|utils`
+- Path aliases in vite.config.ts + tsconfig.json
+- Primary tokens patched to Cavio GREEN (oklch ~156)
+- Light mode default via ThemeProvider (next-themes, enableSystem=false)
+
+`components/ui/*.tsx` re-export from `@notra/ui/components/ui/*` for existing Cavio imports.
+`nav.tsx` remains Cavio-local (not a Notra primitive).
+
+Heavy product folders (ai-elements, brainless, charts, geo, instrument, kibo-ui) are
+vendored on disk but excluded from `tsc` include to keep Vite builds lean; import
+on demand and install matching deps if you light them up.

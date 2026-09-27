@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import OnboardingFlow from "./OnboardingFlow";
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
+import { AuthShell } from "./shell/auth-shell";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Separator } from "./ui/separator";
@@ -197,11 +198,9 @@ export default function AuthGate() {
   // Authenticated but not onboarded → show onboarding
   if (user && userProfile && !userProfile.onboarded) {
     return (
-      <div style={overlayStyle}>
-        <div style={cardStyle}>
-          <OnboardingFlow />
-        </div>
-      </div>
+      <AuthShell>
+        <OnboardingFlow />
+      </AuthShell>
     );
   }
 
@@ -403,38 +402,24 @@ export default function AuthGate() {
   const isEmailView = view === "email-login" || view === "email-register";
 
   return (
-    <div style={overlayStyle}>
-      <Card className="relative w-[460px] max-w-[92vw] min-h-[520px] justify-center gap-0 overflow-hidden rounded-[20px] px-9 py-11 shadow-xl ring-foreground/5" style={{ animation: "authFadeIn 0.25s ease" }}>
-        {/* Close button */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="absolute top-3.5 right-3.5 z-10 text-muted-foreground"
-          onClick={handleClose}
-          aria-label="Close"
-        >
-          <X size={20} />
-        </Button>
-
-        {/* Back button (email views only) */}
+    <AuthShell onClose={handleClose}>
+      <div className="relative w-full" style={{ animation: "authFadeIn 0.25s ease" }}>
         {isEmailView && (
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute top-3.5 left-3.5 z-10 text-muted-foreground"
+            className="absolute -top-2 -left-2 z-10 text-muted-foreground"
             onClick={() => switchView(view === "email-login" ? "login" : "register")}
             aria-label="Back"
           >
             <ArrowLeft size={20} />
           </Button>
         )}
-
         {view === "login" && renderLogin()}
         {view === "register" && renderRegister()}
         {isEmailView && renderEmailForm()}
-      </Card>
-    </div>
+      </div>
+    </AuthShell>
   );
 }

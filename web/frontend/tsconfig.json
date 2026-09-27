@@ -1,4 +1,4 @@
-{
+﻿{
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -15,7 +15,24 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@notra/ui/*": ["src/vendor/notra-ui/*"],
+      "@notra/schemas/*": ["src/vendor/notra-schemas/*"],
+      "@notra/utils/*": ["src/vendor/notra-utils/*"],
+      "next/image": ["src/shims/next-image.tsx"],
+      "next/link": ["src/shims/next-link.tsx"]
+    }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/vendor/notra-ui/components/ai-elements",
+    "src/vendor/notra-ui/components/brainless",
+    "src/vendor/notra-ui/components/charts",
+    "src/vendor/notra-ui/components/geo",
+    "src/vendor/notra-ui/components/instrument",
+    "src/vendor/notra-ui/components/kibo-ui"
+  ]
 }
