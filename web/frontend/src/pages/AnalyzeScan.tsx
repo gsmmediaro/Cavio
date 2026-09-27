@@ -15,6 +15,8 @@ import {
 import FindingsTable from "../components/FindingsTable";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const ACCEPT = ".jpg,.jpeg,.png,.bmp,.tiff,.tif";
 
@@ -538,16 +540,15 @@ export default function AnalyzeScan() {
               >
                 <div style={{ width: 48, height: 48, borderRadius: 10, overflow: "hidden", flexShrink: 0, position: "relative" }}>
                   <img src={preview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                  <button
+                  <Button
+                    type="button"
+                    size="icon-xs"
+                    variant="secondary"
+                    className="absolute top-0.5 right-0.5 size-[18px] rounded-full border-0 bg-black/55 p-0 text-white hover:bg-black/70 hover:text-white"
                     onClick={(e) => { e.stopPropagation(); clearFile(); }}
-                    style={{
-                      position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%",
-                      background: "rgba(0,0,0,0.55)", color: "white", border: "none", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
-                    }}
                   >
                     <X size={10} />
-                  </button>
+                  </Button>
                 </div>
               </motion.div>
             ) : (
@@ -555,7 +556,7 @@ export default function AnalyzeScan() {
                 <Upload size={20} strokeWidth={1.5} style={{ color: "var(--color-ink-ghost)" }} />
               </div>
             )}
-            <input
+            <Input
               ref={patientInputRef}
               type="text"
               placeholder={t("analyze.home.inputPlaceholder")}
@@ -570,16 +571,7 @@ export default function AnalyzeScan() {
                   inputRef.current?.click();
                 }
               }}
-              style={{
-                flex: 1,
-                padding: "20px 14px",
-                background: "transparent",
-                border: "none",
-                fontSize: 16,
-                fontFamily: "var(--font-body)",
-                color: "var(--color-ink)",
-                outline: "none",
-              }}
+              className="h-auto flex-1 rounded-none border-0 bg-transparent px-3.5 py-5 text-base shadow-none focus-visible:ring-0 md:text-base"
             />
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -711,21 +703,16 @@ export default function AnalyzeScan() {
           transition={{ duration: 0.3 }}
           style={{ width: "100%", marginBottom: 20 }}
         >
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-auto gap-1.5 px-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
             onClick={() => navigate(`/analyze?new=${Date.now()}`)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              background: "none", border: "none", cursor: "pointer",
-              color: "var(--color-ink-secondary)", fontSize: 13, fontWeight: 500,
-              fontFamily: "var(--font-body)", padding: "4px 0",
-              transition: "color 0.15s",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = "var(--color-ink)"}
-            onMouseLeave={(e) => e.currentTarget.style.color = "var(--color-ink-secondary)"}
           >
             <ArrowLeft size={15} />
             {t("analyze.newScan")}
-          </button>
+          </Button>
         </motion.div>
 
         {/* Logo + editable name */}
@@ -796,16 +783,13 @@ export default function AnalyzeScan() {
                 color: "rgba(255,255,255,0.75)", fontSize: 14, padding: 32, textAlign: "center", gap: 12,
               }}>
                 <span>{t("analyze.savedImageUnavailable")}</span>
-                <button
+                <Button
+                  type="button"
+                  size="sm"
                   onClick={() => navigate(`/analyze?new=${Date.now()}`)}
-                  style={{
-                    padding: "8px 18px", borderRadius: 8, border: "none",
-                    background: "var(--color-leaf)", color: "white", fontSize: 13,
-                    fontWeight: 500, cursor: "pointer", fontFamily: "var(--font-body)",
-                  }}
                 >
                   {t("analyze.startNewScan")}
-                </button>
+                </Button>
               </div>
             ) : (
               <img
@@ -819,34 +803,18 @@ export default function AnalyzeScan() {
 
           {/* Download — always reachable via keyboard/touch; hover polish on pointer devices */}
           {!resultImageError && (
-            <button
+            <Button
               type="button"
+              size="icon"
+              variant="secondary"
               onClick={handleDownload}
               aria-label={t("analyze.downloadImage")}
               title={t("analyze.downloadImage")}
-              className="cavio-download-btn"
-              style={{
-                position: "absolute", bottom: 12, right: 12,
-                width: 40, height: 40, borderRadius: "50%",
-                background: "rgba(0,0,0,0.6)", color: "white",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                border: "none", cursor: "pointer",
-                opacity: 1,
-                transition: "opacity 0.2s, background 0.15s, transform 0.1s",
-                touchAction: "manipulation",
-                zIndex: 2,
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.8)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.6)"; }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleDownload();
-                }
-              }}
+              className="cavio-download-btn absolute bottom-3 right-3 z-[2] size-10 rounded-full border-0 bg-black/60 text-white hover:bg-black/80 hover:text-white"
+              style={{ touchAction: "manipulation" }}
             >
               <Download size={16} aria-hidden="true" />
-            </button>
+            </Button>
           )}
         </motion.div>
 

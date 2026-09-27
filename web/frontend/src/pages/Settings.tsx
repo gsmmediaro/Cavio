@@ -5,6 +5,15 @@ import {
   getCredits,
   type CreditsInfo,
 } from "../api/client";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
 
 export default function Settings() {
   const { user, userProfile } = useAuth();
@@ -64,201 +73,85 @@ export default function Settings() {
     : "Buy credits";
 
   return (
-    <div style={{
-      flex: 1,
-      display: "flex",
-      flexDirection: "column",
-      padding: isMobile ? "32px 20px" : "60px 32px",
-      maxWidth: 680,
-      width: "100%",
-      margin: "0 auto",
-    }}>
-      <h1 style={{
-        fontFamily: "var(--font-display)",
-        fontSize: isMobile ? 32 : 42,
-        fontWeight: 400,
-        color: "var(--color-ink)",
-        marginBottom: 32,
-        textWrap: "balance",
-      }}>
+    <div
+      className="mx-auto flex w-full max-w-[680px] flex-1 flex-col"
+      style={{ padding: isMobile ? "32px 20px" : "60px 32px" }}
+    >
+      <h1
+        className="mb-8 text-balance font-display text-ink"
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: isMobile ? 32 : 42,
+          fontWeight: 400,
+          color: "var(--color-ink)",
+        }}
+      >
         Account Settings
       </h1>
 
       {notice && (
-        <div style={{
-          marginBottom: 16,
-          padding: "12px 16px",
-          borderRadius: 12,
-          background: "var(--color-leaf-subtle)",
-          color: "var(--color-ink)",
-          fontFamily: "var(--font-body)",
-          fontSize: 14,
-        }}>
+        <div className="mb-4 rounded-xl bg-accent px-4 py-3 text-sm text-foreground">
           {notice}
         </div>
       )}
 
-      <div style={{
-        background: "var(--color-surface)",
-        borderRadius: 16,
-        boxShadow: "var(--shadow-card)",
-        padding: isMobile ? "24px 20px" : "28px 32px",
-        marginBottom: 20,
-      }}>
-        <h2 style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 18,
-          fontWeight: 500,
-          color: "var(--color-ink)",
-          margin: 0,
-        }}>
-          Scan credits
-        </h2>
-        <p style={{
-          fontSize: 13,
-          color: "var(--color-ink-tertiary)",
-          margin: "4px 0 16px",
-          fontFamily: "var(--font-body)",
-        }}>
-          One credit is deducted per OPG caries scan. Buy a single credit pack via Stripe (test mode).
-        </p>
+      <Card className="mb-5 gap-0 py-0">
+        <CardHeader className={isMobile ? "px-5 pt-6" : "px-8 pt-7"}>
+          <CardTitle style={{ fontFamily: "var(--font-display)" }}>Scan credits</CardTitle>
+          <CardDescription>
+            One credit is deducted per OPG caries scan. Buy a single credit pack via Stripe (test mode).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className={isMobile ? "px-5 pb-6" : "px-8 pb-7"}>
+          {!user ? (
+            <p className="text-sm text-muted-foreground">Sign in to view and buy credits.</p>
+          ) : (
+            <>
+              <div className="mb-4 flex items-baseline gap-2">
+                <span
+                  style={{ fontFamily: "var(--font-display)", fontSize: 36, color: "var(--color-ink)" }}
+                >
+                  {credits ? credits.credits : "—"}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  remaining
+                  {credits ? " · " + credits.scan_cost + " per scan" : ""}
+                </span>
+              </div>
+              <Button size="lg" onClick={handleBuy} disabled={buying}>
+                {buying ? "Redirecting…" : packLabel}
+              </Button>
+              {creditsError && (
+                <p className="mt-3 text-[13px] text-destructive">{creditsError}</p>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-        {!user ? (
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--color-ink-secondary)" }}>
-            Sign in to view and buy credits.
-          </p>
-        ) : (
-          <>
-            <div style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 8,
-              marginBottom: 16,
-            }}>
-              <span style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 36,
-                color: "var(--color-ink)",
-              }}>
-                {credits ? credits.credits : "—"}
-              </span>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--color-ink-tertiary)" }}>
-                remaining
-                {credits ? " · " + credits.scan_cost + " per scan" : ""}
-              </span>
-            </div>
-            <button
-              onClick={handleBuy}
-              disabled={buying}
-              style={{
-                padding: "12px 20px",
-                background: "var(--color-leaf)",
-                color: "white",
-                border: "none",
-                borderRadius: 12,
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: buying ? "wait" : "pointer",
-                fontFamily: "var(--font-body)",
-                opacity: buying ? 0.7 : 1,
-              }}
-            >
-              {buying ? "Redirecting…" : packLabel}
-            </button>
-            {creditsError && (
-              <p style={{
-                marginTop: 12,
-                color: "var(--color-high)",
-                fontSize: 13,
-                fontFamily: "var(--font-body)",
-              }}>
-                {creditsError}
-              </p>
-            )}
-          </>
-        )}
-      </div>
-
-      <div style={{
-        background: "var(--color-surface)",
-        borderRadius: 16,
-        boxShadow: "var(--shadow-card)",
-        padding: isMobile ? "24px 20px" : "28px 32px",
-      }}>
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 18,
-            fontWeight: 500,
-            color: "var(--color-ink)",
-            margin: 0,
-            lineHeight: 1.3,
-          }}>
-            Account Information
-          </h2>
-          <p style={{
-            fontSize: 13,
-            color: "var(--color-ink-tertiary)",
-            margin: "4px 0 0",
-            fontFamily: "var(--font-body)",
-          }}>
-            Manage & update your profile information
-          </p>
-        </div>
-
-        <div style={{ borderTop: "1px solid var(--border-color)" }}>
-          <div style={{
-            display: "flex",
-            alignItems: isMobile ? "flex-start" : "center",
-            flexDirection: isMobile ? "column" : "row",
-            justifyContent: "space-between",
-            padding: "20px 0",
-            borderBottom: "1px solid var(--border-color)",
-            gap: isMobile ? 4 : 0,
-          }}>
-            <span style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "var(--color-ink)",
-              fontFamily: "var(--font-body)",
-            }}>
-              Name
-            </span>
-            <span style={{
-              fontSize: 14,
-              color: "var(--color-ink-secondary)",
-              fontFamily: "var(--font-body)",
-            }}>
-              {displayName || "—"}
-            </span>
+      <Card className="gap-0 py-0">
+        <CardHeader className={isMobile ? "px-5 pt-6" : "px-8 pt-7"}>
+          <CardTitle style={{ fontFamily: "var(--font-display)" }}>Account Information</CardTitle>
+          <CardDescription>Manage & update your profile information</CardDescription>
+        </CardHeader>
+        <CardContent className={isMobile ? "px-5 pb-6" : "px-8 pb-7"}>
+          <Separator className="mb-0" />
+          <div
+            className="flex justify-between gap-1 border-b border-border py-5"
+            style={{ flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center" }}
+          >
+            <span className="text-sm font-semibold text-foreground">Name</span>
+            <span className="text-sm text-muted-foreground">{displayName || "—"}</span>
           </div>
-
-          <div style={{
-            display: "flex",
-            alignItems: isMobile ? "flex-start" : "center",
-            flexDirection: isMobile ? "column" : "row",
-            justifyContent: "space-between",
-            padding: "20px 0",
-            gap: isMobile ? 4 : 0,
-          }}>
-            <span style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "var(--color-ink)",
-              fontFamily: "var(--font-body)",
-            }}>
-              Email
-            </span>
-            <span style={{
-              fontSize: 14,
-              color: "var(--color-ink-secondary)",
-              fontFamily: "var(--font-body)",
-            }}>
-              {email || "—"}
-            </span>
+          <div
+            className="flex justify-between gap-1 py-5"
+            style={{ flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center" }}
+          >
+            <span className="text-sm font-semibold text-foreground">Email</span>
+            <span className="text-sm text-muted-foreground">{email || "—"}</span>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -17,6 +17,8 @@ import {
 import { getPatientsFromFirestore, type PatientSummary } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import { Button } from "./ui/button";
+import { NavItem, NavSectionLabel } from "./ui/nav";
 
 function useIsMobile(breakpoint = 768) {
   const [mobile, setMobile] = useState(() => window.innerWidth <= breakpoint);
@@ -152,14 +154,9 @@ export default function Layout({ children }: Props) {
           zIndex: 10,
         }}>
           <img src="/Cavio Header.png" alt="Cavio" style={{ height: 28 }} />
-          <button
-            type="button"
-            onClick={() => setShowAuthGate(true)}
-            className="cavio-btn-primary"
-            style={{ padding: "8px 18px", fontSize: 13 }}
-          >
+          <Button type="button" size="sm" onClick={() => setShowAuthGate(true)}>
             {t("layout.nav.logIn")}
-          </button>
+          </Button>
         </header>
         <div style={{ flex: 1 }}>{children}</div>
       </div>
@@ -181,16 +178,12 @@ export default function Layout({ children }: Props) {
       </div>
 
       <nav style={{ display: "flex", flexDirection: "column", gap: 2, padding: compact ? "0 8px" : "0 10px" }}>
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          className="w-full justify-start gap-2.5 bg-accent text-accent-foreground hover:bg-accent/80"
+          style={{ justifyContent: compact ? "center" : "flex-start", gap: compact ? 0 : 10 }}
           onClick={(e) => { handleNewScanClick(e); onNavigate?.(); }}
-          style={{
-            ...navItemBase,
-            color: "var(--color-leaf-text)",
-            background: "var(--color-leaf-subtle)",
-            justifyContent: compact ? "center" : "flex-start",
-            gap: compact ? 0 : 10,
-          }}
         >
           <div style={{
             width: 20, height: 20, borderRadius: "50%",
@@ -200,21 +193,12 @@ export default function Layout({ children }: Props) {
             <Plus size={11} strokeWidth={3} color="white" />
           </div>
           {!compact && t("layout.nav.newScan")}
-        </button>
+        </Button>
       </nav>
 
       {!compact && (
         <div style={{ flex: 1, overflowY: "auto", padding: "0 10px", marginTop: 8 }}>
-          <div style={{
-            padding: "16px 10px 8px",
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            color: "var(--color-ink-tertiary)",
-          }}>
-            {t("layout.nav.recentScans")}
-          </div>
+          <NavSectionLabel>{t("layout.nav.recentScans")}</NavSectionLabel>
           {patients.length === 0 ? (
             <div style={{ padding: "12px 10px", color: "var(--color-ink-tertiary)", fontSize: 13 }}>
               {t("layout.patients.noScans")}
@@ -222,16 +206,10 @@ export default function Layout({ children }: Props) {
           ) : (
             <>
               {patients.slice(0, 8).map((p) => (
-                <button
+                <NavItem
                   key={p.name}
-                  type="button"
+                  active={selectedPatient === p.name}
                   onClick={() => { handlePatientClick(p.name); onNavigate?.(); }}
-                  style={{
-                    ...navItemBase,
-                    background: selectedPatient === p.name ? "var(--color-surface-hover)" : "transparent",
-                  }}
-                  onMouseEnter={(e) => { if (selectedPatient !== p.name) e.currentTarget.style.background = "var(--color-surface-hover)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = selectedPatient === p.name ? "var(--color-surface-hover)" : "transparent"; }}
                 >
                   <MessageCircle size={15} style={{ color: "var(--color-ink-tertiary)", flexShrink: 0 }} />
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{p.name}</span>
@@ -239,7 +217,7 @@ export default function Layout({ children }: Props) {
                     width: 7, height: 7, borderRadius: "50%",
                     background: suspicionDotColor(p.worst_suspicion), flexShrink: 0,
                   }} />
-                </button>
+                </NavItem>
               ))}
               <button
                 type="button"

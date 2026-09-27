@@ -4,6 +4,10 @@ import { X, ArrowLeft } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import OnboardingFlow from "./OnboardingFlow";
 import { useTranslation } from "react-i18next";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Card } from "./ui/card";
+import { Separator } from "./ui/separator";
 
 /* ── Google "G" icon ── */
 const GOOGLE_G = (
@@ -157,10 +161,12 @@ const backBtnStyle: React.CSSProperties = {
 function Divider() {
   const { t } = useTranslation();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "20px 0" }}>
-      <div style={{ flex: 1, height: 1, background: "var(--border-emphasis)" }} />
-      <span style={{ fontSize: 12, fontFamily: "var(--font-body)", color: "var(--color-ink-tertiary)", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>{t("auth.divider.or")}</span>
-      <div style={{ flex: 1, height: 1, background: "var(--border-emphasis)" }} />
+    <div className="my-5 flex items-center gap-3.5">
+      <Separator className="flex-1" />
+      <span className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("auth.divider.or")}
+      </span>
+      <Separator className="flex-1" />
     </div>
   );
 }
@@ -269,33 +275,29 @@ export default function AuthGate() {
         <p style={subtitleStyle}>{t("auth.login.subtitle")}</p>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <button
-          style={primaryBtnStyle}
-          onClick={() => switchView("email-login")}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = "0.88"}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-        >
+      <div className="flex flex-col gap-3">
+        <Button size="xl" className="w-full" onClick={() => switchView("email-login")}>
           {t("auth.login.emailBtn")}
-        </button>
-        <button
-          style={googleBtnStyle}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="xl"
+          className="w-full gap-2.5 text-[#4285F4] bg-[#4285F4]/10 hover:bg-[#4285F4]/15"
           onClick={handleGoogleSignIn}
-          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(66, 133, 244, 0.14)"}
-          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(66, 133, 244, 0.08)"}
         >
           {GOOGLE_G}
           {t("auth.login.googleBtn")}
-        </button>
+        </Button>
       </div>
 
       <Divider />
 
       <div style={{ textAlign: "center", fontSize: 14, color: "var(--color-ink-secondary)", fontFamily: "var(--font-body)" }}>
         {t("auth.login.noAccount")}{" "}
-        <button style={linkBtnStyle} onClick={() => switchView("register")}>
+        <Button variant="link" className="h-auto p-0 text-primary" onClick={() => switchView("register")}>
           {t("auth.login.createAccount")}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -309,33 +311,29 @@ export default function AuthGate() {
         <p style={subtitleStyle}>{t("auth.register.subtitle")}</p>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <button
-          style={primaryBtnStyle}
-          onClick={() => switchView("email-register")}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = "0.88"}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-        >
+      <div className="flex flex-col gap-3">
+        <Button size="xl" className="w-full" onClick={() => switchView("email-register")}>
           {t("auth.register.emailBtn")}
-        </button>
-        <button
-          style={googleBtnStyle}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="xl"
+          className="w-full gap-2.5 text-[#4285F4] bg-[#4285F4]/10 hover:bg-[#4285F4]/15"
           onClick={handleGoogleSignIn}
-          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(66, 133, 244, 0.14)"}
-          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(66, 133, 244, 0.08)"}
         >
           {GOOGLE_G}
           {t("auth.register.googleBtn")}
-        </button>
+        </Button>
       </div>
 
       <Divider />
 
       <div style={{ textAlign: "center", fontSize: 14, color: "var(--color-ink-secondary)", fontFamily: "var(--font-body)" }}>
         {t("auth.register.hasAccount")}{" "}
-        <button style={linkBtnStyle} onClick={() => switchView("login")}>
+        <Button variant="link" className="h-auto p-0 text-primary" onClick={() => switchView("login")}>
           {t("auth.register.loginHere")}
-        </button>
+        </Button>
       </div>
 
       <p style={{ textAlign: "center", fontSize: 12, color: "var(--color-ink-tertiary)", fontFamily: "var(--font-body)", marginTop: 16, lineHeight: 1.5 }}>
@@ -357,45 +355,33 @@ export default function AuthGate() {
           <h2 style={headingStyle}>{isLogin ? t("auth.emailForm.signIn") : t("auth.emailForm.createAccount")}</h2>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {!isLogin && (
-            <div style={{ display: "flex", gap: 12 }}>
-              <input
-                style={inputStyle}
+            <div className="flex gap-3">
+              <Input
                 placeholder={t("auth.emailForm.firstName")}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                onFocus={(e) => e.currentTarget.style.borderColor = "var(--color-leaf)"}
-                onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
               />
-              <input
-                style={inputStyle}
+              <Input
                 placeholder={t("auth.emailForm.lastName")}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                onFocus={(e) => e.currentTarget.style.borderColor = "var(--color-leaf)"}
-                onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
               />
             </div>
           )}
-          <input
-            style={inputStyle}
+          <Input
             type="email"
             placeholder={t("auth.emailForm.email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onFocus={(e) => e.currentTarget.style.borderColor = "var(--color-leaf)"}
-            onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
             required
           />
-          <input
-            style={inputStyle}
+          <Input
             type="password"
             placeholder={t("auth.emailForm.password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            onFocus={(e) => e.currentTarget.style.borderColor = "var(--color-leaf)"}
-            onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
             required
             minLength={6}
           />
@@ -406,13 +392,9 @@ export default function AuthGate() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{ ...primaryBtnStyle, opacity: submitting ? 0.7 : 1, marginTop: 4 }}
-          >
+          <Button type="submit" size="xl" className="mt-1 w-full" disabled={submitting}>
             {submitting ? t("auth.emailForm.loading") : isLogin ? t("auth.emailForm.signIn") : t("auth.emailForm.createAccountBtn")}
-          </button>
+          </Button>
         </form>
       </div>
     );
@@ -422,35 +404,37 @@ export default function AuthGate() {
 
   return (
     <div style={overlayStyle}>
-      <div style={cardStyle}>
+      <Card className="relative w-[460px] max-w-[92vw] min-h-[520px] justify-center gap-0 overflow-hidden rounded-[20px] px-9 py-11 shadow-xl ring-foreground/5" style={{ animation: "authFadeIn 0.25s ease" }}>
         {/* Close button */}
-        <button
-          style={closeBtnStyle}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute top-3.5 right-3.5 z-10 text-muted-foreground"
           onClick={handleClose}
-          onMouseEnter={(e) => e.currentTarget.style.color = "var(--color-ink)"}
-          onMouseLeave={(e) => e.currentTarget.style.color = "var(--color-ink-tertiary)"}
           aria-label="Close"
         >
           <X size={20} />
-        </button>
+        </Button>
 
         {/* Back button (email views only) */}
         {isEmailView && (
-          <button
-            style={backBtnStyle}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-3.5 left-3.5 z-10 text-muted-foreground"
             onClick={() => switchView(view === "email-login" ? "login" : "register")}
-            onMouseEnter={(e) => e.currentTarget.style.color = "var(--color-ink)"}
-            onMouseLeave={(e) => e.currentTarget.style.color = "var(--color-ink-tertiary)"}
             aria-label="Back"
           >
             <ArrowLeft size={20} />
-          </button>
+          </Button>
         )}
 
         {view === "login" && renderLogin()}
         {view === "register" && renderRegister()}
         {isEmailView && renderEmailForm()}
-      </div>
+      </Card>
     </div>
   );
 }

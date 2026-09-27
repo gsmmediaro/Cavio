@@ -8,35 +8,30 @@
   font-display: swap;
 }
 
+/* Cavio green leaf (oklch) + Notra/shadcn token aliases */
 @theme {
-  /* Surfaces — cool clinical white */
-  --color-bg: oklch(0.985 0.006 250);
+  /* Surfaces — warm parchment (not clinical blue) */
+  --color-bg: oklch(0.964 0.007 89);
   --color-surface: oklch(1 0 0);
-  --color-surface-hover: oklch(0.975 0.008 250);
-  --color-surface-inset: oklch(0.955 0.01 250);
+  --color-surface-hover: oklch(0.975 0.006 89);
+  --color-surface-inset: oklch(0.945 0.008 89);
 
-  /* Text — cool near-black */
-  --color-ink: oklch(0.28 0.02 255);
-  --color-ink-secondary: oklch(0.48 0.02 255);
-  --color-ink-tertiary: oklch(0.6 0.015 255);
-  --color-ink-ghost: oklch(0.78 0.01 255);
+  /* Text — warm brown-black */
+  --color-ink: oklch(0.286 0.012 85);
+  --color-ink-secondary: oklch(0.48 0.012 85);
+  --color-ink-tertiary: oklch(0.62 0.01 85);
+  --color-ink-ghost: oklch(0.78 0.008 85);
 
-  /* Primary — medical clinical BLUE (Notra-style oklch; not green/leaf) */
-  --color-leaf: oklch(0.52 0.14 250);
-  --color-leaf-hover: oklch(0.45 0.145 250);
-  --color-leaf-subtle: oklch(0.95 0.03 250);
-  --color-leaf-text: oklch(0.42 0.12 250);
-  --color-leaf-dark: oklch(0.4 0.13 250);
-
-  /* Aliases for clarity */
-  --color-primary: oklch(0.52 0.14 250);
-  --color-primary-hover: oklch(0.45 0.145 250);
-  --color-primary-subtle: oklch(0.95 0.03 250);
-  --color-primary-foreground: oklch(0.99 0.01 250);
+  /* Primary — Cavio leaf GREEN (oklch hue ~156) */
+  --color-leaf: oklch(0.52 0.102 156);
+  --color-leaf-hover: oklch(0.463 0.094 155);
+  --color-leaf-subtle: oklch(0.959 0.017 163);
+  --color-leaf-text: oklch(0.423 0.089 155);
+  --color-leaf-dark: oklch(0.4 0.09 155);
 
   /* Semantic clinical */
-  --color-low: oklch(0.55 0.11 160);
-  --color-low-bg: oklch(0.96 0.025 160);
+  --color-low: oklch(0.52 0.102 156);
+  --color-low-bg: oklch(0.959 0.017 163);
   --color-moderate: oklch(0.68 0.14 75);
   --color-moderate-bg: oklch(0.97 0.03 85);
   --color-high: oklch(0.55 0.18 25);
@@ -44,15 +39,49 @@
   --color-review: oklch(0.55 0.18 290);
   --color-review-bg: oklch(0.96 0.03 290);
 
+  /* Notra/shadcn color tokens (Tailwind utilities) */
+  --color-background: oklch(0.964 0.007 89);
+  --color-foreground: oklch(0.286 0.012 85);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.286 0.012 85);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.286 0.012 85);
+  --color-primary: oklch(0.52 0.102 156);
+  --color-primary-foreground: oklch(0.99 0.01 156);
+  --color-primary-hover: oklch(0.463 0.094 155);
+  --color-primary-subtle: oklch(0.959 0.017 163);
+  --color-secondary: oklch(0.96 0.006 89);
+  --color-secondary-foreground: oklch(0.286 0.012 85);
+  --color-muted: oklch(0.96 0.006 89);
+  --color-muted-foreground: oklch(0.52 0.012 85);
+  --color-accent: oklch(0.959 0.017 163);
+  --color-accent-foreground: oklch(0.423 0.089 155);
+  --color-destructive: oklch(0.55 0.18 25);
+  --color-destructive-foreground: oklch(0.99 0.01 25);
+  --color-border: oklch(0.286 0.012 85 / 0.12);
+  --color-input: oklch(0.286 0.012 85 / 0.14);
+  --color-ring: oklch(0.52 0.102 156);
+  --color-sidebar: oklch(0.985 0.004 89);
+  --color-sidebar-foreground: oklch(0.286 0.012 85);
+  --color-sidebar-primary: oklch(0.52 0.102 156);
+  --color-sidebar-primary-foreground: oklch(0.99 0.01 156);
+  --color-sidebar-accent: oklch(0.959 0.017 163);
+  --color-sidebar-accent-foreground: oklch(0.423 0.089 155);
+  --color-sidebar-border: oklch(0.286 0.012 85 / 0.1);
+  --color-sidebar-ring: oklch(0.52 0.102 156);
+
   /* Radii — Notra-like */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
   /* Fonts */
   --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
   --font-display: "Exposure Trial", ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -65,13 +94,34 @@ p {
 }
 
 :root {
-  --border-color: oklch(0.28 0.02 255 / 0.1);
-  --border-emphasis: oklch(0.28 0.02 255 / 0.18);
+  --border-color: oklch(0.286 0.012 85 / 0.1);
+  --border-emphasis: oklch(0.286 0.012 85 / 0.16);
   --sidebar-w: 15.5rem;
   --panel-w: 280px;
-  --ring: oklch(0.52 0.14 250);
-  --shadow-card: 0 0 0 1px oklch(0.28 0.02 255 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.03);
+  --ring: oklch(0.52 0.102 156);
+  --radius: 0.5rem;
+  --shadow-card: 0 0 0 1px oklch(0.286 0.012 85 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.03);
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
+
+  /* Raw shadcn vars for non-Tailwind consumers */
+  --background: oklch(0.964 0.007 89);
+  --foreground: oklch(0.286 0.012 85);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.286 0.012 85);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.286 0.012 85);
+  --primary: oklch(0.52 0.102 156);
+  --primary-foreground: oklch(0.99 0.01 156);
+  --secondary: oklch(0.96 0.006 89);
+  --secondary-foreground: oklch(0.286 0.012 85);
+  --muted: oklch(0.96 0.006 89);
+  --muted-foreground: oklch(0.52 0.012 85);
+  --accent: oklch(0.959 0.017 163);
+  --accent-foreground: oklch(0.423 0.089 155);
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.99 0.01 25);
+  --border: oklch(0.286 0.012 85 / 0.12);
+  --input: oklch(0.286 0.012 85 / 0.14);
 }
 
 *, *::before, *::after {
@@ -90,7 +140,7 @@ body {
 }
 
 ::selection {
-  background-color: oklch(0.52 0.14 250 / 0.22);
+  background-color: oklch(0.52 0.102 156 / 0.22);
   color: inherit;
 }
 
@@ -165,7 +215,7 @@ textarea:focus-visible,
 .upload-area.drag-over {
   border-color: var(--color-primary);
   background: var(--color-primary-subtle);
-  box-shadow: 0 0 0 3px oklch(0.52 0.14 250 / 0.12);
+  box-shadow: 0 0 0 3px oklch(0.52 0.102 156 / 0.12);
 }
 .upload-area:focus-visible {
   outline: 2px solid var(--ring);
