@@ -1,4 +1,4 @@
-﻿@import "@notra/ui/globals.css";
+@import "@notra/ui/globals.css";
 
 /* Scan vendored Notra UI + Cavio app sources for Tailwind class extraction */
 @source "../vendor/notra-ui/**/*.{ts,tsx}";
@@ -54,9 +54,19 @@
   --shadow-card: var(--shadow-sm);
   --font-body: var(--font-sans);
   --font-display: "Exposure Trial", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  /* Warm parchment wash over Notra white — light-first Cavio feel */
-  --background: oklch(0.978 0.006 89);
-  --sidebar: oklch(0.99 0.003 89);
+  /*
+   * Light neutrals = Notra white/zinc (no cream/parchment).
+   * Only primary/ring/sidebar-primary stay Cavio green (set in vendored Notra globals).
+   * TabsList segmented track uses --muted (zinc); active pill uses --background (white).
+   */
+  --background: hsl(0 0% 100%);
+  --card: hsl(0 0% 100%);
+  --popover: hsl(0 0% 100%);
+  --secondary: hsl(0 0% 96.1%);
+  --muted: hsl(0 0% 96.1%);
+  --accent: hsl(0 0% 96.1%);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
 }
 
 @layer base {
