@@ -33,6 +33,7 @@ import { cn } from "@notra/ui/lib/utils";
 import { getPatientsFromFirestore, type PatientSummary } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { SiteHeader } from "./shell/site-header";
+import { useSettingsModal } from "@/hooks/use-settings-modal";
 
 function suspicionDotColor(s: string): string {
   switch (s) {
@@ -56,6 +57,7 @@ export default function Layout({ children }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, setShowAuthGate } = useAuth();
+  const { openSettings, isOpen: settingsOpen } = useSettingsModal();
   const [patients, setPatients] = useState<PatientSummary[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
 
@@ -188,9 +190,9 @@ export default function Layout({ children }: Props) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={location.pathname.startsWith("/settings")}
+                  isActive={settingsOpen}
                   tooltip={t("layout.nav.settings")}
-                  onClick={() => navigate("/settings")}
+                  onClick={() => openSettings()}
                 >
                   <Settings className="size-4" />
                   <span>{t("layout.nav.settings")}</span>

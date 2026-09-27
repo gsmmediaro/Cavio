@@ -1,4 +1,4 @@
-﻿import { useLocation, useNavigate } from "react-router-dom";
+﻿import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LogOut, Settings, HelpCircle } from "lucide-react";
 import { Separator } from "@notra/ui/components/ui/separator";
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback } from "@notra/ui/components/ui/avatar";
 import { SidebarTrigger } from "@notra/ui/components/ui/sidebar";
 
 import { useAuth } from "../../contexts/AuthContext";
+import { useSettingsModal } from "@/hooks/use-settings-modal";
 
 function initials(name: string): string {
   return name
@@ -36,8 +37,8 @@ const TITLE_BY_PATH: Record<string, string> = {
 export function SiteHeader() {
   const { t } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, userProfile, logout } = useAuth();
+  const { openSettings } = useSettingsModal();
 
   const base = "/" + (location.pathname.split("/").filter(Boolean)[0] ?? "analyze");
   const title = TITLE_BY_PATH[base] ?? "Cavio";
@@ -90,7 +91,7 @@ export function SiteHeader() {
                   </DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                <DropdownMenuItem onClick={() => openSettings()}>
                   <Settings className="size-4" />
                   {t("layout.nav.settings")}
                 </DropdownMenuItem>
