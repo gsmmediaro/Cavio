@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "./motion.css";
 
 @font-face {
   font-family: "Exposure Trial";
@@ -61,6 +63,13 @@
   --color-border: oklch(0.286 0.012 85 / 0.12);
   --color-input: oklch(0.286 0.012 85 / 0.14);
   --color-ring: oklch(0.52 0.102 156);
+  --color-success: oklch(0.52 0.102 156);
+  --color-success-foreground: oklch(0.99 0.01 156);
+  --color-warning: oklch(0.68 0.14 75);
+  --color-warning-foreground: oklch(0.3 0.06 75);
+  --color-info: oklch(0.55 0.12 240);
+  --color-info-foreground: oklch(0.99 0.01 240);
+
   --color-sidebar: oklch(0.985 0.004 89);
   --color-sidebar-foreground: oklch(0.286 0.012 85);
   --color-sidebar-primary: oklch(0.52 0.102 156);

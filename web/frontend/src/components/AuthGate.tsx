@@ -276,13 +276,13 @@ export default function AuthGate() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button size="xl" className="w-full" onClick={() => switchView("email-login")}>
+        <Button size="lg" className="w-full" onClick={() => switchView("email-login")}>
           {t("auth.login.emailBtn")}
         </Button>
         <Button
           type="button"
           variant="secondary"
-          size="xl"
+          size="lg"
           className="w-full gap-2.5 text-[#4285F4] bg-[#4285F4]/10 hover:bg-[#4285F4]/15"
           onClick={handleGoogleSignIn}
         >
@@ -312,13 +312,13 @@ export default function AuthGate() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button size="xl" className="w-full" onClick={() => switchView("email-register")}>
+        <Button size="lg" className="w-full" onClick={() => switchView("email-register")}>
           {t("auth.register.emailBtn")}
         </Button>
         <Button
           type="button"
           variant="secondary"
-          size="xl"
+          size="lg"
           className="w-full gap-2.5 text-[#4285F4] bg-[#4285F4]/10 hover:bg-[#4285F4]/15"
           onClick={handleGoogleSignIn}
         >
@@ -392,7 +392,7 @@ export default function AuthGate() {
             </div>
           )}
 
-          <Button type="submit" size="xl" className="mt-1 w-full" disabled={submitting}>
+          <Button type="submit" size="lg" className="mt-1 w-full" disabled={submitting}>
             {submitting ? t("auth.emailForm.loading") : isLogin ? t("auth.emailForm.signIn") : t("auth.emailForm.createAccountBtn")}
           </Button>
         </form>

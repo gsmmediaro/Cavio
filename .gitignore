@@ -211,3 +211,7 @@ web/backend/.env
 # Local lead dumps
 cavio_dental_firms*.csv
 
+ 
+# Keep Vite frontend lib (cn/cnfast, Notra motion) tracked 
+!web/frontend/src/lib/ 
+!web/frontend/src/lib/** 
