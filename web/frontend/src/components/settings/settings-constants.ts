@@ -69,7 +69,7 @@ export const CAVIO_SETTINGS_LABELS: Record<CavioSettingsSection, string> = {
 
 export const CAVIO_SETTINGS_DESCRIPTIONS: Record<CavioSettingsSection, string> = {
   credits: "Scan credit balance and subscription allotment.",
-  billing: "Subscribe to Starter, Pro, or Clinic — Monthly/Yearly like Notra.",
+  billing: "Subscribe to Starter, Pro, or Clinic. Monthly or yearly, like Notra.",
   account: "Profile, email, and account information.",
   language: "Interface language for Cavio.",
 };

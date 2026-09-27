@@ -9,12 +9,13 @@ type SettingsNavProps = {
   onSelect: (id: CavioSettingsSection) => void;
 };
 
-/** Port of Notra SettingsModalNav (sans search — Cavio sections are few). */
+/** Port of Notra SettingsModalNav (sans search. Cavio sections are few). */
 export function SettingsNav({ groups, activeSection, onSelect }: SettingsNavProps) {
   return (
     <nav
       aria-label="Settings"
-      className="border-border flex shrink-0 flex-col gap-4 border-b px-3 py-3 md:w-56 md:border-r md:border-b-0 md:px-3 md:py-4"
+      className="border-border relative z-10 flex shrink-0 flex-col gap-4 border-b px-3 py-3 pointer-events-auto md:w-56 md:border-r md:border-b-0 md:px-3 md:py-4"
+      data-settings-nav=""
     >
       {groups.map((group) => (
         <div className="space-y-1" key={group.id}>
@@ -28,17 +29,18 @@ export function SettingsNav({ groups, activeSection, onSelect }: SettingsNavProp
                 <button
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
+                    "relative z-10 flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors pointer-events-auto",
                     active
                       ? "bg-muted text-foreground font-medium"
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                   )}
+                  data-settings-section={item.id}
                   key={item.id}
                   onClick={() => onSelect(item.id)}
                   type="button"
                 >
-                  <HugeiconsIcon className="size-4 shrink-0" icon={item.icon} strokeWidth={2} />
-                  <span className="whitespace-nowrap">{item.label}</span>
+                  <HugeiconsIcon className="size-4 shrink-0 pointer-events-none" icon={item.icon} strokeWidth={2} />
+                  <span className="whitespace-nowrap pointer-events-none">{item.label}</span>
                 </button>
               );
             })}

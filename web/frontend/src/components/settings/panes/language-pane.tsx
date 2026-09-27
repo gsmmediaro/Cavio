@@ -6,7 +6,7 @@ type LanguagePaneProps = {
   onChange: (lang: "en" | "ro") => void;
 };
 
-/** Preferences pane — language segmented control (Notra settings row style). */
+/** Preferences pane . language segmented control (Notra settings row style). */
 export function LanguageSettingsPane({ lang, onChange }: LanguagePaneProps) {
   return (
     <SettingsPane>

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import type { CreditsInfo } from "@/api/client";
 import { CreditSummaryCards } from "@/components/billing/credit-summary-cards";
-import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
+import { UpgradePaywallDialog } from "@/components/billing/upgrade-paywall-dialog";
 import { ErrorBanner } from "@/components/chat/notra-chat-states";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,11 @@ type CreditsPaneProps = {
   topupSuccess?: boolean;
 };
 
-/** Port of Notra CreditsSettingsPane — Cavio subscription credits. */
+/**
+ * Port of Notra CreditsSettingsPane.
+ * Cavio Subscribe from allowance opens UpgradePaywallDialog
+ * (same PlanCard + Monthly/Yearly structure as Notra GeoUpgradeDialog).
+ */
 export function CreditsSettingsPane({
   credits,
   creditsLoading,
@@ -27,13 +31,19 @@ export function CreditsSettingsPane({
   onRefresh,
   topupSuccess = false,
 }: CreditsPaneProps) {
-  const [topupOpen, setTopupOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   return (
     <SettingsPane>
       {notice ? (
         <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm" role="status">
           {notice}
+        </div>
+      ) : null}
+
+      {topupSuccess && !notice ? (
+        <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm" role="status">
+          Subscription updated. Your monthly scan credits are ready to use.
         </div>
       ) : null}
 
@@ -49,7 +59,7 @@ export function CreditsSettingsPane({
         balanceAction={
           <Button
             aria-label="Subscribe"
-            onClick={() => setTopupOpen(true)}
+            onClick={() => setPaywallOpen(true)}
             size="icon-sm"
             variant="ghost"
           >
@@ -61,7 +71,7 @@ export function CreditsSettingsPane({
       />
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => setTopupOpen(true)} variant="outline">
+        <Button onClick={() => setPaywallOpen(true)} variant="outline">
           Subscribe
         </Button>
         <Button onClick={onRefresh} variant="ghost">
@@ -69,12 +79,13 @@ export function CreditsSettingsPane({
         </Button>
       </div>
 
-      <CreditTopupModal
+      <UpgradePaywallDialog
         credits={credits}
+        description="Subscribe for monthly scan credits. One credit per OPG. Yearly saves 20%."
         loadingCredits={creditsLoading}
-        onOpenChange={setTopupOpen}
-        open={topupOpen}
-        success={topupSuccess && topupOpen}
+        onOpenChange={setPaywallOpen}
+        open={paywallOpen}
+        title="Choose your plan"
       />
     </SettingsPane>
   );

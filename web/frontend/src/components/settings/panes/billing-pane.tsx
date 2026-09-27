@@ -40,7 +40,7 @@ function mergePlans(credits: CreditsInfo | null): PlanInfo[] {
   }));
 }
 
-/** Port of Notra BillingSettingsPane — Monthly/Yearly toggle + Subscribe CTAs. */
+/** Port of Notra BillingSettingsPane. Monthly/Yearly toggle + Subscribe CTAs. */
 export function BillingSettingsPane({ credits, creditsLoading }: BillingPaneProps) {
   const [buyingPlan, setBuyingPlan] = useState<string | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -93,7 +93,7 @@ export function BillingSettingsPane({ credits, creditsLoading }: BillingPaneProp
             Plans
           </h2>
           <p className="text-muted-foreground text-sm">
-            Subscribe for monthly scan credits. Yearly bills 10× monthly — Save 20%.
+            Subscribe for monthly scan credits. Yearly bills 10x monthly. Save 20%.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

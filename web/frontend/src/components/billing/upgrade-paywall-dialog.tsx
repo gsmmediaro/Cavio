@@ -31,7 +31,7 @@ type UpgradePaywallDialogProps = {
   description?: string;
 };
 
-/** Port of Notra GeoUpgradeDialog — subscription cards + Monthly/Yearly toggle. */
+/** Port of Notra GeoUpgradeDialog. Subscription cards + Monthly/Yearly toggle. */
 export function UpgradePaywallDialog({
   open,
   onOpenChange,
@@ -78,7 +78,7 @@ export function UpgradePaywallDialog({
 
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent className="flex max-h-[90svh] flex-col overflow-hidden sm:max-w-5xl">
+      <ResponsiveDialogContent className="z-[60] flex max-h-[90svh] flex-col overflow-hidden pointer-events-auto sm:max-w-5xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{title}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>{description}</ResponsiveDialogDescription>
@@ -136,7 +136,7 @@ export function UpgradePaywallDialog({
                       },
                       {
                         text: isYearly
-                          ? "Billed yearly — Save 20%"
+                          ? "Billed yearly. Save 20%."
                           : "Credits renew each month",
                       },
                       { text: "Cancel anytime" },

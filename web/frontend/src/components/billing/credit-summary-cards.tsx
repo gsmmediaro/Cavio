@@ -11,7 +11,7 @@ type CreditSummaryCardsProps = {
   balanceAction?: ReactNode;
 };
 
-/** Port of Notra CreditSummaryCards — Cavio subscription credits balance. */
+/** Port of Notra CreditSummaryCards. Cavio subscription credits balance. */
 export function CreditSummaryCards({
   credits,
   isLoading = false,
@@ -35,10 +35,10 @@ export function CreditSummaryCards({
       ? Math.min(Math.max(((allotment - Math.min(balance, allotment)) / allotment) * 100, 0), 100)
       : 0;
   const planHint = credits?.subscription_plan_id
-    ? `${credits.subscription_plan_id} · ${credits.subscription_interval || "month"}`
+    ? `${credits.subscription_plan_id} / ${credits.subscription_interval || "month"}`
     : credits
       ? `$${(credits.pack_price_cents / 100).toFixed(0)}/mo Pro allotment`
-      : "—";
+      : "-";
 
   return (
     <div className="grid gap-4 sm:grid-cols-3">
@@ -50,7 +50,7 @@ export function CreditSummaryCards({
       >
         <div>
           <p className="text-3xl font-bold tracking-tight tabular-nums">
-            {balance !== null ? balance : "—"}
+            {balance !== null ? balance : "-"}
           </p>
           <p className="text-muted-foreground mt-1 text-sm">
             {scanCost} credit per scan
@@ -60,7 +60,7 @@ export function CreditSummaryCards({
       <TitleCard accentColor="#8b5cf6" className="min-w-0" heading="Monthly allotment">
         <div>
           <p className="text-3xl font-bold tracking-tight tabular-nums">
-            {allotment !== null ? allotment : "—"}
+            {allotment !== null ? allotment : "-"}
           </p>
           <p className="text-muted-foreground mt-1 text-sm">{planHint}</p>
         </div>

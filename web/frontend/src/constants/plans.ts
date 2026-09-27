@@ -1,12 +1,12 @@
 /**
- * Cavio pricing — Notra-style recurring subscriptions via Stripe.
+ * Cavio pricing . Notra-style recurring subscriptions via Stripe.
  *
  * Notra SoT (apps/dashboard + packages/ai/billing/features):
  *   Free + paid Starter / Growth (featured) / Scale
  *   Monthly/Yearly toggle (yearly ≈ 10× month / Save 20%)
  *
  * Cavio adaptation:
- *   Free + Starter / Pro (featured) / Clinic — Stripe mode=subscription
+ *   Free + Starter / Pro (featured) / Clinic . Stripe mode=subscription
  *   Each plan grants monthly scan credits; yearly bills 10× monthly.
  */
 

@@ -37,7 +37,7 @@ function planCardClassName(highlighted: boolean, featured: boolean): string {
   return "transition-all hover:ring-2 hover:ring-muted-foreground/20";
 }
 
-/** Port of Notra PlanCard — Cavio keeps Stripe/credits CTA (green primary). */
+/** Port of Notra PlanCard . Cavio keeps Stripe/credits CTA (green primary). */
 export function PlanCard({
   name,
   description,
