@@ -11,7 +11,7 @@ type CreditSummaryCardsProps = {
   balanceAction?: ReactNode;
 };
 
-/** Port of Notra CreditSummaryCards — Cavio Stripe credits balance. */
+/** Port of Notra CreditSummaryCards — Cavio subscription credits balance. */
 export function CreditSummaryCards({
   credits,
   isLoading = false,
@@ -28,12 +28,17 @@ export function CreditSummaryCards({
   }
 
   const balance = credits?.credits ?? null;
-  const pack = credits?.pack_credits ?? null;
+  const allotment = credits?.pack_credits ?? null;
   const scanCost = credits?.scan_cost ?? 1;
   const usagePercent =
-    pack && pack > 0 && balance !== null
-      ? Math.min(Math.max(((pack - Math.min(balance, pack)) / pack) * 100, 0), 100)
+    allotment && allotment > 0 && balance !== null
+      ? Math.min(Math.max(((allotment - Math.min(balance, allotment)) / allotment) * 100, 0), 100)
       : 0;
+  const planHint = credits?.subscription_plan_id
+    ? `${credits.subscription_plan_id} · ${credits.subscription_interval || "month"}`
+    : credits
+      ? `$${(credits.pack_price_cents / 100).toFixed(0)}/mo Pro allotment`
+      : "—";
 
   return (
     <div className="grid gap-4 sm:grid-cols-3">
@@ -52,16 +57,12 @@ export function CreditSummaryCards({
           </p>
         </div>
       </TitleCard>
-      <TitleCard accentColor="#8b5cf6" className="min-w-0" heading="Pack size">
+      <TitleCard accentColor="#8b5cf6" className="min-w-0" heading="Monthly allotment">
         <div>
           <p className="text-3xl font-bold tracking-tight tabular-nums">
-            {pack !== null ? pack : "—"}
+            {allotment !== null ? allotment : "—"}
           </p>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {credits
-              ? `$${(credits.pack_price_cents / 100).toFixed(2)} via Stripe`
-              : "—"}
-          </p>
+          <p className="text-muted-foreground mt-1 text-sm">{planHint}</p>
         </div>
       </TitleCard>
       <TitleCard className="min-w-0" heading="Usage">
@@ -70,7 +71,7 @@ export function CreditSummaryCards({
             <p className="text-3xl font-bold tracking-tight tabular-nums">
               {Math.round(usagePercent)}%
             </p>
-            <p className="text-muted-foreground text-sm">of last pack</p>
+            <p className="text-muted-foreground text-sm">of allotment</p>
           </div>
           <div className="bg-muted mt-3 h-2 w-full overflow-hidden rounded-full">
             <div

@@ -18,7 +18,7 @@ type CreditsPaneProps = {
   topupSuccess?: boolean;
 };
 
-/** Port of Notra CreditsSettingsPane — Cavio Stripe credits. */
+/** Port of Notra CreditsSettingsPane — Cavio subscription credits. */
 export function CreditsSettingsPane({
   credits,
   creditsLoading,
@@ -62,7 +62,7 @@ export function CreditsSettingsPane({
 
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => setTopupOpen(true)} variant="outline">
-          Top up
+          Subscribe
         </Button>
         <Button onClick={onRefresh} variant="ghost">
           Refresh

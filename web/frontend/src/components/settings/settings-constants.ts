@@ -29,13 +29,13 @@ export const CAVIO_SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       {
         id: "credits",
         label: "Credits",
-        description: "Balance, usage, and top-ups",
+        description: "Balance, usage, and subscriptions",
         icon: Wallet01Icon,
       },
       {
         id: "billing",
         label: "Plans",
-        description: "Credit packs and upgrade",
+        description: "Subscribe monthly or yearly",
         icon: CreditCardIcon,
       },
     ],
@@ -68,8 +68,8 @@ export const CAVIO_SETTINGS_LABELS: Record<CavioSettingsSection, string> = {
 };
 
 export const CAVIO_SETTINGS_DESCRIPTIONS: Record<CavioSettingsSection, string> = {
-  credits: "Scan credit balance, pack size, and Stripe top-ups.",
-  billing: "Choose a credit pack — Notra-style plan cards, Cavio Stripe backend.",
+  credits: "Scan credit balance and subscription allotment.",
+  billing: "Subscribe to Starter, Pro, or Clinic — Monthly/Yearly like Notra.",
   account: "Profile, email, and account information.",
   language: "Interface language for Cavio.",
 };
