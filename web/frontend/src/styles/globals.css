@@ -9,43 +9,50 @@
 }
 
 @theme {
-  /* Surfaces — warm parchment */
-  --color-bg: #f5f3ee;
-  --color-surface: #ffffff;
-  --color-surface-hover: #faf9f6;
-  --color-surface-inset: #efeee9;
+  /* Surfaces — cool clinical white */
+  --color-bg: oklch(0.985 0.006 250);
+  --color-surface: oklch(1 0 0);
+  --color-surface-hover: oklch(0.975 0.008 250);
+  --color-surface-inset: oklch(0.955 0.01 250);
 
-  /* Text — warm brown-black */
-  --color-ink: #2d2a24;
-  --color-ink-secondary: #6b6560;
-  --color-ink-tertiary: #9b958d;
-  --color-ink-ghost: #c4bfb6;
+  /* Text — cool near-black */
+  --color-ink: oklch(0.28 0.02 255);
+  --color-ink-secondary: oklch(0.48 0.02 255);
+  --color-ink-tertiary: oklch(0.6 0.015 255);
+  --color-ink-ghost: oklch(0.78 0.01 255);
 
-  /* Primary — leaves green */
-  --color-leaf: #2d7a4f;
-  --color-leaf-hover: #246841;
-  --color-leaf-subtle: #e8f5ee;
-  --color-leaf-text: #1a5c38;
+  /* Primary — medical clinical BLUE (Notra-style oklch; not green/leaf) */
+  --color-leaf: oklch(0.52 0.14 250);
+  --color-leaf-hover: oklch(0.45 0.145 250);
+  --color-leaf-subtle: oklch(0.95 0.03 250);
+  --color-leaf-text: oklch(0.42 0.12 250);
+  --color-leaf-dark: oklch(0.4 0.13 250);
 
-  /* Semantic */
-  --color-low: #2d7a4f;
-  --color-low-bg: #e8f5ee;
-  --color-moderate: #b8860b;
-  --color-moderate-bg: #fdf6e3;
-  --color-high: #c0392b;
-  --color-high-bg: #fdf0ee;
-  --color-review: #7c3aed;
-  --color-review-bg: #f3efff;
+  /* Aliases for clarity */
+  --color-primary: oklch(0.52 0.14 250);
+  --color-primary-hover: oklch(0.45 0.145 250);
+  --color-primary-subtle: oklch(0.95 0.03 250);
+  --color-primary-foreground: oklch(0.99 0.01 250);
 
-  /* Radii */
+  /* Semantic clinical */
+  --color-low: oklch(0.55 0.11 160);
+  --color-low-bg: oklch(0.96 0.025 160);
+  --color-moderate: oklch(0.68 0.14 75);
+  --color-moderate-bg: oklch(0.97 0.03 85);
+  --color-high: oklch(0.55 0.18 25);
+  --color-high-bg: oklch(0.96 0.03 25);
+  --color-review: oklch(0.55 0.18 290);
+  --color-review-bg: oklch(0.96 0.03 290);
+
+  /* Radii — Notra-like */
   --radius-sm: 6px;
   --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-lg: 14px;
   --radius-full: 9999px;
 
   /* Fonts */
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Exposure Trial', 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
+  --font-display: "Exposure Trial", ui-serif, Georgia, Cambria, "Times New Roman", serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -57,12 +64,14 @@ p {
   text-wrap: pretty;
 }
 
-/* Borders — whisper-quiet warm (CSS vars, not theme tokens) */
 :root {
-  --border-color: rgba(45, 42, 36, 0.08);
-  --border-emphasis: rgba(45, 42, 36, 0.15);
-  --sidebar-w: 260px;
+  --border-color: oklch(0.28 0.02 255 / 0.1);
+  --border-emphasis: oklch(0.28 0.02 255 / 0.18);
+  --sidebar-w: 15.5rem;
   --panel-w: 280px;
+  --ring: oklch(0.52 0.14 250);
+  --shadow-card: 0 0 0 1px oklch(0.28 0.02 255 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
 }
 
 *, *::before, *::after {
@@ -80,7 +89,11 @@ body {
   font-size: 14px;
 }
 
-/* Verdict badges */
+::selection {
+  background-color: oklch(0.52 0.14 250 / 0.22);
+  color: inherit;
+}
+
 .verdict-badge {
   @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
 }
@@ -89,29 +102,97 @@ body {
 .verdict-badge.high { background: var(--color-high-bg); color: var(--color-high); }
 .verdict-badge.review { background: var(--color-review-bg); color: var(--color-review); }
 
-/* Spinner */
 .spinner {
   @apply w-4 h-4 rounded-full border-2 animate-spin;
   border-color: var(--border-emphasis);
   border-top-color: white;
 }
 
-/* Remove focus outline from all interactive elements */
-button:focus, button:focus-visible,
-a:focus, a:focus-visible,
+/* Focus-visible rings (a11y P0) */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
 input:focus-visible,
 select:focus-visible,
-[role="button"]:focus, [role="button"]:focus-visible {
-  outline: none;
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
-/* Auth modal fade-in */
+.cavio-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.cavio-btn-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.cavio-btn-primary:hover { background: var(--color-primary-hover); }
+.cavio-btn-primary:active { transform: scale(0.98); }
+
+/* UploadZone */
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 180px;
+  width: 100%;
+  padding: 28px 20px;
+  border-radius: var(--radius-lg);
+  border: 1.5px dashed var(--border-emphasis);
+  background: var(--color-surface);
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  box-shadow: 0 0 0 3px oklch(0.52 0.14 250 / 0.12);
+}
+.upload-area:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.upload-icon {
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.upload-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  text-align: center;
+}
+.upload-hint {
+  font-size: 12px;
+  color: var(--color-ink-tertiary);
+}
+
 @keyframes authFadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Reduced motion: respect user preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -119,24 +200,18 @@ select:focus-visible,
   }
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-emphasis); border-radius: 3px; }
 
-/* Mobile overrides */
 @media (max-width: 768px) {
   :root {
     --sidebar-w: 0px;
     --panel-w: 0px;
   }
-
   .mobile-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-
-  .mobile-table-scroll table {
-    min-width: 600px;
-  }
+  .mobile-table-scroll table { min-width: 600px; }
 }

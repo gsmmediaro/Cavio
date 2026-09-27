@@ -39,7 +39,7 @@ export default function Settings() {
     void refreshCredits();
     const params = new URLSearchParams(window.location.search);
     if (params.get("credits") === "success") {
-      setNotice("Payment received ? credits will appear after Stripe webhook confirmation.");
+      setNotice("Payment received — credits will appear after Stripe webhook confirmation.");
       void refreshCredits();
     } else if (params.get("credits") === "cancel") {
       setNotice("Checkout canceled.");
@@ -89,7 +89,7 @@ export default function Settings() {
           marginBottom: 16,
           padding: "12px 16px",
           borderRadius: 12,
-          background: "rgba(76, 140, 90, 0.12)",
+          background: "var(--color-leaf-subtle)",
           color: "var(--color-ink)",
           fontFamily: "var(--font-body)",
           fontSize: 14,
@@ -101,7 +101,7 @@ export default function Settings() {
       <div style={{
         background: "var(--color-surface)",
         borderRadius: 16,
-        boxShadow: "0 0 0 1px rgba(45, 42, 36, 0.06), 0 1px 2px rgba(0,0,0,0.03)",
+        boxShadow: "var(--shadow-card)",
         padding: isMobile ? "24px 20px" : "28px 32px",
         marginBottom: 20,
       }}>
@@ -140,11 +140,11 @@ export default function Settings() {
                 fontSize: 36,
                 color: "var(--color-ink)",
               }}>
-                {credits ? credits.credits : "?"}
+                {credits ? credits.credits : "—"}
               </span>
               <span style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--color-ink-tertiary)" }}>
                 remaining
-                {credits ? " ? " + credits.scan_cost + " per scan" : ""}
+                {credits ? " · " + credits.scan_cost + " per scan" : ""}
               </span>
             </div>
             <button
@@ -163,7 +163,7 @@ export default function Settings() {
                 opacity: buying ? 0.7 : 1,
               }}
             >
-              {buying ? "Redirecting?" : packLabel}
+              {buying ? "Redirecting…" : packLabel}
             </button>
             {creditsError && (
               <p style={{
@@ -182,7 +182,7 @@ export default function Settings() {
       <div style={{
         background: "var(--color-surface)",
         borderRadius: 16,
-        boxShadow: "0 0 0 1px rgba(45, 42, 36, 0.06), 0 1px 2px rgba(0,0,0,0.03)",
+        boxShadow: "var(--shadow-card)",
         padding: isMobile ? "24px 20px" : "28px 32px",
       }}>
         <div style={{ marginBottom: 24 }}>
@@ -229,7 +229,7 @@ export default function Settings() {
               color: "var(--color-ink-secondary)",
               fontFamily: "var(--font-body)",
             }}>
-              {displayName || "?"}
+              {displayName || "—"}
             </span>
           </div>
 
@@ -254,7 +254,7 @@ export default function Settings() {
               color: "var(--color-ink-secondary)",
               fontFamily: "var(--font-body)",
             }}>
-              {email || "?"}
+              {email || "—"}
             </span>
           </div>
         </div>

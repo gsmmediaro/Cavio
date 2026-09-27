@@ -12,6 +12,7 @@ import {
   type ModelInfo,
   type ScanRecord,
 } from "../api/client";
+import FindingsTable from "../components/FindingsTable";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 
@@ -816,26 +817,47 @@ export default function AnalyzeScan() {
             )}
           </div>
 
-          {/* Download button — appears on hover */}
+          {/* Download — always reachable via keyboard/touch; hover polish on pointer devices */}
           {!resultImageError && (
             <button
+              type="button"
               onClick={handleDownload}
-              className="opacity-0 group-hover:opacity-100"
+              aria-label={t("analyze.downloadImage")}
+              title={t("analyze.downloadImage")}
+              className="cavio-download-btn"
               style={{
                 position: "absolute", bottom: 12, right: 12,
-                width: 36, height: 36, borderRadius: "50%",
-                background: "rgba(0,0,0,0.55)", color: "white",
+                width: 40, height: 40, borderRadius: "50%",
+                background: "rgba(0,0,0,0.6)", color: "white",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 border: "none", cursor: "pointer",
-                transition: "opacity 0.2s, background 0.15s",
+                opacity: 1,
+                transition: "opacity 0.2s, background 0.15s, transform 0.1s",
+                touchAction: "manipulation",
+                zIndex: 2,
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.75)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.55)"}
-              title={t("analyze.downloadImage")}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.8)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.6)"; }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleDownload();
+                }
+              }}
             >
-              <Download size={15} />
+              <Download size={16} aria-hidden="true" />
             </button>
           )}
+        </motion.div>
+
+        {/* Findings table (incl. empty / zero detections) */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.14 }}
+          style={{ width: "100%", marginTop: 20 }}
+        >
+          <FindingsTable detections={result.detections || []} />
         </motion.div>
       </div>
     );

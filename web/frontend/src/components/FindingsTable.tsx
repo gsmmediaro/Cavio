@@ -40,17 +40,36 @@ function confBadge(confidence: number): React.CSSProperties {
 
 export default function FindingsTable({ detections }: { detections: Detection[] }) {
   if (detections.length === 0) {
-    return null;
+    return (
+      <div
+        className="cavio-card"
+        style={{
+          width: "100%",
+          padding: "28px 20px",
+          textAlign: "center",
+          color: "var(--color-ink-tertiary)",
+        }}
+        role="status"
+        aria-live="polite"
+      >
+        <div style={{ fontSize: 14, fontWeight: 500, color: "var(--color-ink-secondary)", marginBottom: 4 }}>
+          No detections
+        </div>
+        <div style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>
+          Zero findings on this scan. Review the image clinically as needed.
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{
-      width: "100%",
-      background: "var(--color-surface)",
-      borderRadius: 14,
-      overflow: "hidden",
-      boxShadow: "0 0 0 1px rgba(45, 42, 36, 0.06), 0 1px 2px rgba(0,0,0,0.03)",
-    }}>
+    <div
+      className="cavio-card"
+      style={{
+        width: "100%",
+        overflow: "hidden",
+      }}
+    >
       <div className="mobile-table-scroll">
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -65,8 +84,8 @@ export default function FindingsTable({ detections }: { detections: Detection[] 
               <tr
                 key={i}
                 style={{ transition: "background 0.1s" }}
-                onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-surface-hover)"}
-                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-surface-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
                 <td style={{ ...tdStyle, fontWeight: 500, color: "var(--color-ink)" }}>{d.class_name}</td>
                 <td style={tdStyle}>
