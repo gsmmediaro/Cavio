@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Upload, X, ArrowUp, Pencil, ArrowLeft, Download } from "lucide-react";
+import { Upload, Pencil, ArrowLeft, Download } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -16,8 +16,7 @@ import FindingsTable from "../components/FindingsTable";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { CtaButton } from "../components/ui/cta-button";
 import { Badge } from "../components/ui/badge";
 import { cn } from "../lib/utils";
 import { toast } from "sonner";
@@ -28,6 +27,7 @@ import {
   ChatUserBubble,
   ErrorBanner,
 } from "../components/chat/notra-chat-states";
+import { AnalyzeComposer } from "../components/chat/analyze-composer";
 
 const ACCEPT = ".jpg,.jpeg,.png,.bmp,.tiff,.tif";
 
@@ -517,101 +517,38 @@ export default function AnalyzeScan() {
           </motion.div>
         )}
 
-        {/* Notra-style chat composer */}
+        {/* Notra Studio agent chat composer (exact Frame/Toolbar/Send CTA) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
           className="mb-4 w-full max-w-[680px]"
         >
-          <div
-            className={cn(
-              "overflow-hidden rounded-2xl border border-border bg-background shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[box-shadow,border-color]",
-              inputFocused || dragOver ? "border-foreground/20 shadow-[0_0_0_1px_rgba(45,42,36,0.12),0_6px_16px_rgba(0,0,0,0.04)]" : "",
-            )}
-            onClick={() => patientInputRef.current?.focus()}
-          >
-            {(file && preview) ? (
-              <div className="flex items-center gap-2 border-b border-border/60 px-3 pt-3">
-                <div className="relative size-14 overflow-hidden rounded-lg border border-border">
-                  <img src={preview} alt="Preview" className="size-full object-cover" />
-                  <Button
-                    type="button"
-                    size="icon-xs"
-                    variant="secondary"
-                    className="absolute top-0.5 right-0.5 size-[18px] rounded-full border-0 bg-black/55 p-0 text-white hover:bg-black/70 hover:text-white"
-                    onClick={(e) => { e.stopPropagation(); clearFile(); }}
-                  >
-                    <X size={10} />
-                  </Button>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-foreground">{file.name}</div>
-                  <div className="text-xs text-muted-foreground">{modality} · ready to analyze</div>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="flex items-end gap-2 px-3 pt-3">
-              <Input
-                ref={patientInputRef}
-                type="text"
-                placeholder={t("analyze.home.inputPlaceholder")}
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (file) void handleAnalyze();
-                    else inputRef.current?.click();
-                  }
-                }}
-                className="h-auto flex-1 rounded-none border-0 bg-transparent px-1 py-2 text-base shadow-none focus-visible:ring-0 md:text-base"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 px-2.5 pb-2.5 pt-1">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="h-7 gap-1.5 px-2 text-muted-foreground"
-                onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-              >
-                <Upload size={14} />
-                <span className="text-xs">{file ? "Replace" : "Attach"}</span>
-              </Button>
-
-              <Tabs
-                value={modality}
-                onValueChange={(v) => setModality(v as "Panoramic" | "Bitewing")}
-              >
-                <TabsList variant="default" className="h-7">
-                  <TabsTrigger value="Panoramic" className="px-2.5 text-xs">Panoramic</TabsTrigger>
-                  <TabsTrigger value="Bitewing" className="px-2.5 text-xs">Bitewing</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <Button
-                type="button"
-                size="icon"
-                className={cn(
-                  "ml-auto size-7 shrink-0 rounded-full",
-                  file ? "bg-foreground text-background hover:bg-foreground/90" : "bg-muted text-muted-foreground",
-                )}
-                disabled={!file || loading}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (file) void handleAnalyze();
-                }}
-                aria-label={file ? t("analyze.analyze") : t("analyze.home.getStarted")}
-              >
-                <ArrowUp size={14} />
-              </Button>
-            </div>
-          </div>
+          <AnalyzeComposer
+            patientName={patientName}
+            onPatientNameChange={setPatientName}
+            placeholder={t("analyze.home.inputPlaceholder")}
+            modality={modality}
+            onModalityChange={setModality}
+            file={file}
+            preview={preview}
+            onClearFile={clearFile}
+            onPickFile={() => inputRef.current?.click()}
+            onFileDrop={(f) => handleFile(f)}
+            onAnalyze={() => { void handleAnalyze(); }}
+            loading={loading}
+            attachLabel="Attach"
+            replaceLabel="Replace"
+            sendLabel={t("analyze.analyze")}
+            getStartedLabel={t("analyze.home.getStarted")}
+            accept={ACCEPT}
+            fileInputRef={inputRef}
+            onFileInputChange={(f) => { if (f) handleFile(f); }}
+            dragOver={dragOver}
+            onDragOverChange={setDragOver}
+            focused={inputFocused}
+            onFocusedChange={setInputFocused}
+          />
         </motion.div>
 
         {/* Error banner (Notra Alert) */}
@@ -620,20 +557,6 @@ export default function AnalyzeScan() {
             <ErrorBanner title="Analysis issue" description={error} />
           </div>
         )}
-
-        {/* Hidden file input */}
-        <input
-          ref={inputRef}
-          type="file"
-          accept={ACCEPT}
-          hidden
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) handleFile(f);
-            e.currentTarget.value = "";
-          }}
-        />
-
       </div>
     );
   }
@@ -764,9 +687,9 @@ export default function AnalyzeScan() {
             {resultImageError && !preview ? (
               <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 p-8 text-center text-sm text-white/75">
                 <span>{t("analyze.savedImageUnavailable")}</span>
-                <Button type="button" size="sm" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
+                <CtaButton type="button" size="default" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
                   {t("analyze.startNewScan")}
-                </Button>
+                </CtaButton>
               </div>
             ) : (
               <img
@@ -799,9 +722,9 @@ export default function AnalyzeScan() {
         <div className="mt-auto rounded-2xl border border-border bg-background p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">Analyze another panoramic or bitewing.</p>
-            <Button size="sm" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
+            <CtaButton type="button" size="default" className="h-8 px-4 text-sm" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
               {t("analyze.newScan")}
-            </Button>
+            </CtaButton>
           </div>
         </div>
       </div>

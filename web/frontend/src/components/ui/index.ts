@@ -16,3 +16,5 @@ export * from "./dropdown-menu";
 export * from "./avatar";
 export * from "./sheet";
 export { NavItem, NavSectionLabel } from "./nav";
+
+export * from "./cta-button";

@@ -7,6 +7,7 @@ import {
   type CreditsInfo,
 } from "../api/client";
 import { Button } from "../components/ui/button";
+import { CtaButton } from "../components/ui/cta-button";
 import {
   Card,
   CardContent,
@@ -164,9 +165,9 @@ export default function Settings() {
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button size="lg" onClick={handleBuy} disabled={buying || Boolean(creditsError)}>
+                    <CtaButton size="default" className="h-11" onClick={handleBuy} disabled={buying || Boolean(creditsError)}>
                       {buying ? "Redirecting…" : packLabel}
-                    </Button>
+                    </CtaButton>
                     <Button size="lg" variant="outline" onClick={() => void refreshCredits()}>
                       Refresh
                     </Button>

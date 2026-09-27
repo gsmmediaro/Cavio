@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import OnboardingFlow from "./OnboardingFlow";
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
+import { CtaButton } from "./ui/cta-button";
 import { AuthShell } from "./shell/auth-shell";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
@@ -275,9 +276,9 @@ export default function AuthGate() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button size="lg" className="w-full" onClick={() => switchView("email-login")}>
+        <CtaButton size="default" className="w-full h-11" onClick={() => switchView("email-login")}>
           {t("auth.login.emailBtn")}
-        </Button>
+        </CtaButton>
         <Button
           type="button"
           variant="secondary"
@@ -311,9 +312,9 @@ export default function AuthGate() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button size="lg" className="w-full" onClick={() => switchView("email-register")}>
+        <CtaButton size="default" className="w-full h-11" onClick={() => switchView("email-register")}>
           {t("auth.register.emailBtn")}
-        </Button>
+        </CtaButton>
         <Button
           type="button"
           variant="secondary"
@@ -391,9 +392,9 @@ export default function AuthGate() {
             </div>
           )}
 
-          <Button type="submit" size="lg" className="mt-1 w-full" disabled={submitting}>
+          <CtaButton type="submit" size="default" className="mt-1 w-full h-11" disabled={submitting}>
             {submitting ? t("auth.emailForm.loading") : isLogin ? t("auth.emailForm.signIn") : t("auth.emailForm.createAccountBtn")}
-          </Button>
+          </CtaButton>
         </form>
       </div>
     );

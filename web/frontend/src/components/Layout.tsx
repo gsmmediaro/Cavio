@@ -27,6 +27,7 @@ import {
   SidebarSeparator,
 } from "@notra/ui/components/ui/sidebar";
 import { Button } from "@notra/ui/components/ui/button";
+import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { cn } from "@notra/ui/lib/utils";
 
 import { getPatientsFromFirestore, type PatientSummary } from "../api/client";
@@ -89,9 +90,9 @@ export default function Layout({ children }: Props) {
       <div className="bg-background flex min-h-svh flex-col">
         <header className="bg-card sticky top-0 z-10 flex items-center justify-between border-b px-4 py-3 md:px-6">
           <img src="/Cavio Header.png" alt="Cavio" className="h-7" />
-          <Button type="button" size="sm" onClick={() => setShowAuthGate(true)}>
+          <CtaButton type="button" size="default" className="h-8 px-4 text-sm" onClick={() => setShowAuthGate(true)}>
             {t("layout.nav.logIn")}
-          </Button>
+          </CtaButton>
         </header>
         <main className="flex-1">{children}</main>
       </div>
