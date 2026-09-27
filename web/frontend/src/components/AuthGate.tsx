@@ -1,5 +1,5 @@
-import { useState } from "react";
-// framer-motion removed — CSS animation used instead
+﻿import { useState } from "react";
+// framer-motion removed â€” CSS animation used instead
 import { X, ArrowLeft } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import OnboardingFlow from "./OnboardingFlow";
@@ -11,7 +11,7 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Separator } from "./ui/separator";
 
-/* ── Google "G" icon ── */
+/* â”€â”€ Google "G" icon â”€â”€ */
 const GOOGLE_G = (
   <svg width="20" height="20" viewBox="0 0 48 48">
     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -21,10 +21,10 @@ const GOOGLE_G = (
   </svg>
 );
 
-/* ── View type ── */
+/* â”€â”€ View type â”€â”€ */
 type View = "login" | "register" | "email-login" | "email-register";
 
-/* ── Shared styles ── */
+/* â”€â”€ Shared styles â”€â”€ */
 const overlayStyle: React.CSSProperties = {
   position: "fixed",
   inset: 0,
@@ -159,7 +159,7 @@ const backBtnStyle: React.CSSProperties = {
   transition: "color 0.15s",
 };
 
-/* ── Divider ── */
+/* â”€â”€ Divider â”€â”€ */
 function Divider() {
   const { t } = useTranslation();
   return (
@@ -173,12 +173,12 @@ function Divider() {
   );
 }
 
-/* ── View wrapper — simple fade via CSS ── */
+/* â”€â”€ View wrapper â€” simple fade via CSS â”€â”€ */
 const viewStyle: React.CSSProperties = {
   animation: "authFadeIn 0.22s ease-out",
 };
 
-/* ── Main component ── */
+/* â”€â”€ Main component â”€â”€ */
 export default function AuthGate() {
   const { t } = useTranslation();
   const { user, userProfile, loading, login, register, loginWithGoogle, showAuthGate, setShowAuthGate } = useAuth();
@@ -193,10 +193,10 @@ export default function AuthGate() {
 
   if (loading) return null;
 
-  // Authenticated and onboarded → no gate
+  // Authenticated and onboarded â†’ no gate
   if (user && userProfile?.onboarded) return null;
 
-  // Authenticated but not onboarded → show onboarding
+  // Authenticated but not onboarded â†’ show onboarding
   if (user && userProfile && !userProfile.onboarded) {
     return (
       <AuthShell>
@@ -227,7 +227,7 @@ export default function AuthGate() {
 
   const handleClose = () => {
     // Only allow closing if externally triggered (user exists scenario)
-    // When no user, modal is mandatory — but we still wire the X for future use
+    // When no user, modal is mandatory â€” but we still wire the X for future use
     setShowAuthGate(false);
   };
 
@@ -266,7 +266,7 @@ export default function AuthGate() {
     }
   };
 
-  /* ── Login method selection ── */
+  /* Login method selection */
   const renderLogin = () => (
     <div key="login" style={viewStyle}>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
@@ -276,19 +276,29 @@ export default function AuthGate() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <CtaButton size="default" className="w-full h-11" onClick={() => switchView("email-login")}>
+        {/*
+          Notra social uses CtaButton light; primary email uses CtaButton primary.
+          Full-width rounded-full reads as a sausage pill — override to rounded-lg
+          so email matches the Google control radius Stefan called correct, while
+          keeping Notra CtaButton structure (gradient + glow / light).
+        */}
+        <CtaButton
+          size="default"
+          className="h-11 w-full !rounded-lg"
+          onClick={() => switchView("email-login")}
+        >
           {t("auth.login.emailBtn")}
         </CtaButton>
-        <Button
+        <CtaButton
           type="button"
-          variant="secondary"
-          size="lg"
-          className="w-full gap-2.5 text-[#4285F4] bg-[#4285F4]/10 hover:bg-[#4285F4]/15"
+          variant="light"
+          size="default"
+          className="h-11 w-full !rounded-lg"
           onClick={handleGoogleSignIn}
         >
           {GOOGLE_G}
           {t("auth.login.googleBtn")}
-        </Button>
+        </CtaButton>
       </div>
 
       <Divider />
@@ -302,7 +312,7 @@ export default function AuthGate() {
     </div>
   );
 
-  /* ── Register method selection ── */
+  /* Register method selection */
   const renderRegister = () => (
     <div key="register" style={viewStyle}>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
@@ -312,19 +322,23 @@ export default function AuthGate() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <CtaButton size="default" className="w-full h-11" onClick={() => switchView("email-register")}>
+        <CtaButton
+          size="default"
+          className="h-11 w-full !rounded-lg"
+          onClick={() => switchView("email-register")}
+        >
           {t("auth.register.emailBtn")}
         </CtaButton>
-        <Button
+        <CtaButton
           type="button"
-          variant="secondary"
-          size="lg"
-          className="w-full gap-2.5 text-[#4285F4] bg-[#4285F4]/10 hover:bg-[#4285F4]/15"
+          variant="light"
+          size="default"
+          className="h-11 w-full !rounded-lg"
           onClick={handleGoogleSignIn}
         >
           {GOOGLE_G}
           {t("auth.register.googleBtn")}
-        </Button>
+        </CtaButton>
       </div>
 
       <Divider />
@@ -345,7 +359,7 @@ export default function AuthGate() {
     </div>
   );
 
-  /* ── Email form (login or register) ── */
+  /* Email form (login or register) */
   const renderEmailForm = () => {
     const isLogin = view === "email-login";
     return (
@@ -392,7 +406,7 @@ export default function AuthGate() {
             </div>
           )}
 
-          <CtaButton type="submit" size="default" className="mt-1 w-full h-11" disabled={submitting}>
+          <CtaButton type="submit" size="default" className="mt-1 h-11 w-full !rounded-lg" disabled={submitting}>
             {submitting ? t("auth.emailForm.loading") : isLogin ? t("auth.emailForm.signIn") : t("auth.emailForm.createAccountBtn")}
           </CtaButton>
         </form>

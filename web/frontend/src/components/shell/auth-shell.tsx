@@ -1,10 +1,13 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
+import { AuthBrandPanel } from "./auth-brand-panel";
+
 /**
  * Notra-style auth chrome adapted for Vite/Cavio:
  * split layout (form | brand panel), light-first, Cavio green brand wash.
- * Skips Next-only pieces (next/dynamic WebGL dither, next/font).
+ * Brand panel ambient effects mirror Notra AuthBrandPanel (CSS stand-in for
+ * WebGL dither). Skips Next-only pieces (next/dynamic, next/font).
  */
 export function AuthShell({
   children,
@@ -58,21 +61,7 @@ export function AuthShell({
       <div className="relative hidden lg:flex">
         <div className="absolute inset-0 flex items-center justify-center p-8">
           <div className="corner-squircle relative h-full w-full overflow-hidden rounded-md supports-[corner-shape:squircle]:rounded-2xl">
-            <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[linear-gradient(200deg,oklch(0.72_0.09_156)_0%,oklch(0.52_0.102_156)_55%,oklch(0.40_0.09_155)_100%)] p-14">
-              <div className="relative max-w-sm text-center text-white">
-                <img
-                  src="/Cavio Header.png"
-                  alt="Cavio"
-                  className="mx-auto mb-8 h-10 brightness-0 invert"
-                />
-                <p className="text-lg font-medium leading-snug tracking-tight">
-                  Clinical screening, designed with care.
-                </p>
-                <p className="mt-3 text-sm text-white/75">
-                  Analyze scans, track patients, and keep your practice moving — in a calm, light workspace.
-                </p>
-              </div>
-            </div>
+            <AuthBrandPanel />
           </div>
         </div>
       </div>
