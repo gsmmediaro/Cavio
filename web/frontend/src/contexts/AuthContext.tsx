@@ -15,6 +15,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, googleProvider } from "../firebase";
+import { syncBackendAccount } from "../api/client";
 
 export interface UserProfile {
   firstName: string;
@@ -57,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [showAuthGate, setShowAuthGate] = useState(false);
 
   const fetchProfile = async (u: User) => {
+    try {
+      await syncBackendAccount();
+    } catch (err) {
+      console.warn("Backend account sync failed", err);
+    }
     const snap = await getDoc(doc(db, "users", u.uid));
     if (snap.exists()) {
       setUserProfile(snap.data() as UserProfile);

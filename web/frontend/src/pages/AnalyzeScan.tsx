@@ -294,8 +294,17 @@ export default function AnalyzeScan() {
       }
     } catch (e: any) {
       const msg = e?.message || "";
-      // Surface server validation errors (400) clearly
-      if (msg.includes("Could not decode image")) {
+      const status = e?.status as number | undefined;
+      if (status === 401) {
+        setShowAuthGate(true);
+        setError(t("analyze.errors.authRequired", { defaultValue: "Please sign in to run a scan." }));
+      } else if (status === 402 || /insufficient credits/i.test(msg)) {
+        setError(t("analyze.errors.noCredits", { defaultValue: "No credits left. Buy a credit pack in Settings." }));
+      } else if (status === 429 || /rate limit/i.test(msg)) {
+        setError(t("analyze.errors.rateLimited", { defaultValue: "Too many requests. Please wait and try again." }));
+      } else if (status === 413 || /too large/i.test(msg)) {
+        setError(t("analyze.errors.fileTooLarge", { defaultValue: "File is too large." }));
+      } else if (msg.includes("Could not decode image")) {
         setError(t("analyze.errors.invalidImage", { defaultValue: "Could not process this file. Please upload a valid dental X-ray." }));
       } else if (msg.includes("timed out") || msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
         setError(t("analyze.errors.network", { defaultValue: "Network error — check your connection and try again." }));

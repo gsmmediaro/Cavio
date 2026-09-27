@@ -201,3 +201,13 @@ radiografie*.jpeg
 # Backend data
 web/backend/data/
 web/backend/static/results/
+web/backend/tests/_test_accounts.db
+web/backend/.env
+
+# Local Railway staging upload dir
+.deploy-railway/
+
+
+# Local lead dumps
+cavio_dental_firms*.csv
+

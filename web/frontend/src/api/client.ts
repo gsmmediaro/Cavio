@@ -1,4 +1,4 @@
-import {
+﻿import {
   collection,
   addDoc,
   getDocs,
@@ -29,8 +29,41 @@ function build_api_url(path: string): string {
   return path;
 }
 
+const LOCAL_TOKEN_KEY = "cavio_local_token";
+
+export function setLocalAccessToken(token: string | null) {
+  if (token) localStorage.setItem(LOCAL_TOKEN_KEY, token);
+  else localStorage.removeItem(LOCAL_TOKEN_KEY);
+}
+
+export function getLocalAccessToken(): string | null {
+  return localStorage.getItem(LOCAL_TOKEN_KEY);
+}
+
+/** Prefer Firebase ID token; fall back to local JWT from /api/auth. */
+export async function getAccessToken(): Promise<string | null> {
+  try {
+    const { auth } = await import("../firebase");
+    const u = auth.currentUser;
+    if (u) return await u.getIdToken();
+  } catch {
+    // firebase may be unconfigured in some local flows
+  }
+  return getLocalAccessToken();
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const token = await getAccessToken();
+  return token ? { Authorization: "Bearer " + token } : {};
+}
+
+
 function ensure_https_url(url: string): string {
   if (!url) return "";
+  // Keep localhost / loopback on http for local API
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(url)) {
+    return url;
+  }
   if (url.startsWith("http://")) {
     return `https://${url.slice("http://".length)}`;
   }
@@ -82,6 +115,7 @@ export interface AnalysisResult {
   model_name: string;
   num_detections: number;
   turnaround_s: number;
+  credits_remaining?: number | null;
 }
 
 export interface ScanRecord {
@@ -117,7 +151,7 @@ export interface ModelInfo {
   name: string;
 }
 
-/* ── Backend API calls (inference stays server-side) ── */
+/* â”€â”€ Backend API calls (inference stays server-side) â”€â”€ */
 
 export async function analyzeImage(
   file: File,
@@ -134,11 +168,22 @@ export async function analyzeImage(
   form.append("modality", modality);
   form.append("use_tooth_assignment", String(useToothAssignment));
   form.append("patient_name", patientName);
+  const headers = await authHeaders();
   const res = await fetch(build_api_url("/api/analyze"), {
     method: "POST",
     body: form,
+    headers,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    let detail = await res.text();
+    try {
+      const parsed = JSON.parse(detail);
+      detail = parsed.detail || detail;
+    } catch { /* keep text */ }
+    const err = new Error(detail || ("Analyze failed (" + res.status + ")")) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
   const data: AnalysisResult = await res.json();
   if (data.annotated_image_url?.startsWith("/")) {
     data.annotated_image_url = build_api_url(data.annotated_image_url);
@@ -153,7 +198,7 @@ export async function getModels(): Promise<ModelInfo[]> {
   return res.json();
 }
 
-/* ── Firestore CRUD (scoped to authenticated user) ── */
+/* â”€â”€ Firestore CRUD (scoped to authenticated user) â”€â”€ */
 
 const SUSPICION_ORDER: Record<string, number> = { LOW: 0, MODERATE: 1, HIGH: 2, REVIEW: 3 };
 
@@ -339,4 +384,67 @@ export async function deleteScanFromFirestore(uid: string, scanId: string): Prom
 export async function updateScanPatientName(uid: string, scanId: string, newName: string): Promise<void> {
   const { updateDoc } = await import("firebase/firestore");
   await updateDoc(doc(db, "users", uid, "scans", scanId), { patientName: newName });
+}
+
+
+/* ── Credits / billing (backend) ── */
+
+export interface CreditsInfo {
+  credits: number;
+  scan_cost: number;
+  pack_credits: number;
+  pack_price_cents: number;
+  publishable_key: string;
+}
+
+export async function getCredits(): Promise<CreditsInfo> {
+  const headers = await authHeaders();
+  const res = await fetch(build_api_url('/api/credits'), { headers });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function createCheckoutSession(): Promise<{ checkout_url: string; session_id: string }> {
+  const headers = await authHeaders();
+  headers['Content-Type'] = 'application/json';
+  const res = await fetch(build_api_url('/api/billing/checkout'), {
+    method: 'POST',
+    headers,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function syncBackendAccount(): Promise<{ uid: string; email: string; credits: number }> {
+  const headers = await authHeaders();
+  const res = await fetch(build_api_url('/api/auth/sync'), {
+    method: 'POST',
+    headers,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function localRegister(email: string, password: string) {
+  const res = await fetch(build_api_url('/api/auth/register'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  setLocalAccessToken(data.access_token);
+  return data;
+}
+
+export async function localLogin(email: string, password: string) {
+  const res = await fetch(build_api_url('/api/auth/login'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  setLocalAccessToken(data.access_token);
+  return data;
 }

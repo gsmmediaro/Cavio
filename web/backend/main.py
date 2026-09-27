@@ -1,89 +1,116 @@
-"""FastAPI application for Caries Screening."""
+﻿"""FastAPI application for Caries Screening."""
 
 import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
-from web.backend.routers import analyze
+from web.backend.routers import analyze, auth_api, billing
+from web.backend.services import credits as credits_service
 from web.backend.services import inference
+from web.backend.services.result_urls import verify_result_signature
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+STATIC_DIR = Path(__file__).resolve().parent / 'static'
+RESULTS_DIR = STATIC_DIR / 'results'
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGER = logging.getLogger(__name__)
 
-# Friendly display names for models
 MODEL_DISPLAY_NAMES: dict[str, str] = {
-    "pano_caries_only_gpu2": "Panoramic",
-    "pano_gpu2": "Panoramic",
-    "bitewing_caries_only": "Bitewing",
-    "bitewing": "Bitewing",
-    "pano_caries_roboflow_v1": "Kiwi",
-    "pano_dc1000_potato": "Kiwi",
-    "potato": "Kiwi",
+    'pano_caries_only_gpu2': 'Panoramic',
+    'pano_gpu2': 'Panoramic',
+    'bitewing_caries_only': 'Bitewing',
+    'bitewing': 'Bitewing',
+    'pano_caries_roboflow_v1': 'Kiwi',
+    'pano_dc1000_potato': 'Kiwi',
+    'potato': 'Kiwi',
 }
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    credits_service.init_db()
     models = inference.find_models()
     if models:
         inference.load_model(models[0])
     yield
 
 
-app = FastAPI(title="Caries Screening API", lifespan=lifespan)
+app = FastAPI(title='Caries Screening API', lifespan=lifespan)
 
 
 def _split_csv(value: str) -> list[str]:
-    return [item.strip() for item in value.split(",") if item.strip()]
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 
 origins = _split_csv(
     os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173",
+        'CORS_ORIGINS',
+        'http://localhost:5173,http://127.0.0.1:5173',
     )
 )
 
-for key in ("FRONTEND_ORIGIN", "FRONTEND_URL"):
-    value = (os.getenv(key) or "").strip().rstrip("/")
+for key in ('FRONTEND_ORIGIN', 'FRONTEND_URL'):
+    value = (os.getenv(key) or '').strip().rstrip('/')
     if value and value not in origins:
         origins.append(value)
 
-origin_regex = os.getenv("CORS_ORIGIN_REGEX")
+origin_regex = os.getenv('CORS_ORIGIN_REGEX')
 if origin_regex is None:
-    origin_regex = r"^https://([a-zA-Z0-9-]+\.)?vercel\.app$"
+    origin_regex = r'^https://([a-zA-Z0-9-]+\.)?vercel\.app$'
 else:
     origin_regex = origin_regex.strip() or None
 
-LOGGER.info("CORS config loaded origins=%s origin_regex=%s", origins, origin_regex)
+LOGGER.info('CORS config loaded origins=%s origin_regex=%s', origins, origin_regex)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_origin_regex=origin_regex if origin_regex else None,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allow_headers=['Authorization', 'Content-Type', 'Accept', 'X-Requested-With'],
 )
 
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+@app.get('/static/results/{filename}')
+async def get_signed_result(
+    filename: str,
+    sig: str = Query(''),
+    exp: str = Query(''),
+):
+    """Serve analysis result images only with a short-lived HMAC signature."""
+    if '/' in filename or '\\' in filename or '..' in filename or not filename.endswith(('.jpg', '.jpeg', '.png', '.webp')):
+        raise HTTPException(status_code=404, detail='Not found')
+    if not verify_result_signature(filename, sig=sig, exp=exp):
+        raise HTTPException(status_code=401, detail='Invalid or expired result token')
+    path = RESULTS_DIR / filename
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail='Not found')
+    return FileResponse(path, media_type='image/jpeg')
+
 
 app.include_router(analyze.router)
+app.include_router(auth_api.router)
+app.include_router(billing.router)
 
 
-@app.get("/api/models")
+@app.get('/api/health')
+async def health():
+    return {'ok': True}
+
+
+@app.get('/api/models')
 async def list_models():
     models = inference.find_models()
     result = []
     for m in models:
         raw_name = Path(m).parent.parent.name
         display = MODEL_DISPLAY_NAMES.get(raw_name, raw_name)
-        result.append({"path": m, "name": display})
+        result.append({'path': m, 'name': display})
     return result

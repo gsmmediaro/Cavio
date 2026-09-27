@@ -23,6 +23,7 @@ class AnalysisResult(BaseModel):
     model_name: str = ""
     num_detections: int
     turnaround_s: float
+    credits_remaining: Optional[int] = None
 
 
 class ScanRecord(BaseModel):
