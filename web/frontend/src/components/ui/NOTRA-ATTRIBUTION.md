@@ -17,3 +17,8 @@ Vite adaptations:
 Heavy product folders (ai-elements, brainless, charts, geo, instrument, kibo-ui) are
 vendored on disk but excluded from `tsc` include to keep Vite builds lean; import
 on demand and install matching deps if you light them up.
+
+## Dashboard chat (agent analyze)
+Vendored lean extracts under `src/vendor/notra-dashboard/` from
+`apps/dashboard` chat activity + `packages/ui` ai-elements Message/MessageContent.
+Analyze chat chrome (bubbles, thinking) must import these — do not invent Cavio-only message UI.

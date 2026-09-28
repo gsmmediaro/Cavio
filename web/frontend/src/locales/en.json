@@ -168,7 +168,7 @@
       "desc3": "What can I help you with today?",
       "inputPlaceholder": "Patient name",
       "attachPlaceholder": "Attach a radiograph to continue…",
-      "askRadiograph": "Please attach a radiograph for {{name}} — panoramic or bitewing.",
+      "askRadiograph": "Please attach a radiograph for {{name}} - panoramic or bitewing.",
       "attach": "Attach",
       "replace": "Replace",
       "getStarted": "Get Started",

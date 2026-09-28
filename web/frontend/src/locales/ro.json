@@ -168,7 +168,7 @@
       "desc3": "Cu ce te pot ajuta azi?",
       "inputPlaceholder": "Numele pacientului",
       "attachPlaceholder": "Atașează o radiografie pentru a continua…",
-      "askRadiograph": "Te rog atașează o radiografie pentru {{name}} — panoramică sau bitewing.",
+      "askRadiograph": "Te rog atașează o radiografie pentru {{name}} - panoramică sau bitewing.",
       "attach": "Atașează",
       "replace": "Înlocuiește",
       "getStarted": "Începe",

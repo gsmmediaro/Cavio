@@ -78,6 +78,9 @@ export default function AnalyzeScan() {
   const [nameSubmitted, setNameSubmitted] = useState(false);
   /** Notra-style pending row after name send, before scripted assistant reply. */
   const [nameReplyPending, setNameReplyPending] = useState(false);
+  /** Elapsed seconds for Notra ChatActivityStatus (agent thinking row). */
+  const [activitySeconds, setActivitySeconds] = useState(0);
+  const activityStartedAtRef = useRef(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [savedScanId, setSavedScanId] = useState<string | null>(null);
@@ -120,6 +123,24 @@ export default function AnalyzeScan() {
     return t("analyze.greeting.evening");
   };
 
+  useEffect(() => {
+    const active = nameReplyPending || (loading && !result);
+    if (!active) {
+      activityStartedAtRef.current = null;
+      setActivitySeconds(0);
+      return;
+    }
+    if (activityStartedAtRef.current == null) {
+      activityStartedAtRef.current = Date.now();
+    }
+    setActivitySeconds(0);
+    const id = window.setInterval(() => {
+      const started = activityStartedAtRef.current;
+      if (started == null) return;
+      setActivitySeconds(Math.max(0, Math.floor((Date.now() - started) / 1000)));
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [nameReplyPending, loading, result]);
   useEffect(() => {
     // Clear name-reply thinking timer on unmount
     return () => {
@@ -590,6 +611,7 @@ export default function AnalyzeScan() {
               <ChatAssistantBlock>
                 <ThinkingIndicator
                   label={t("analyze.thinking", { defaultValue: "Thinking" })}
+                  seconds={activitySeconds}
                 />
               </ChatAssistantBlock>
             ) : (
@@ -737,7 +759,7 @@ export default function AnalyzeScan() {
             </div>
           ) : null}
           <ChatAssistantBlock
-            reasoning={<AnalyzingIndicator label={t("analyze.analyzing", { defaultValue: "Analyzing scan…" })} />}
+            reasoning={<AnalyzingIndicator label={t("analyze.analyzing", { defaultValue: "Analyzing scan" })} seconds={activitySeconds} />}
           >
             <AnalyzeResultSkeleton />
           </ChatAssistantBlock>

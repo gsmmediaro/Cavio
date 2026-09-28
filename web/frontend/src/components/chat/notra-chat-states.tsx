@@ -1,14 +1,26 @@
-﻿import type { ReactNode } from "react";
+﻿/**
+ * Analyze chat chrome: thin Cavio wrappers around vendored Notra SOURCE components.
+ * Do not invent bubbles / thinking / shimmers here — import from
+ * vendor/notra-dashboard (dashboard chat) and @notra/ui (packages/ui).
+ *
+ * Kept local: ErrorBanner + layout skeletons (settings/composer/result mirrors).
+ */
+import type { ReactNode } from "react";
 import { AlertCircleIcon, InboxIcon, RefreshCwIcon } from "lucide-react";
-import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
-import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
-import { Loader } from "@notra/ui/components/ai-elements/loader";
 import { Alert, AlertDescription, AlertTitle } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
+import {
+  Message,
+  MessageContent,
+} from "@/vendor/notra-dashboard/components/ai-elements/message";
+import { ChatActivityStatus } from "@/vendor/notra-dashboard/components/ai/chat-activity-status";
+import { UserMessageTextBubble } from "@/vendor/notra-dashboard/components/chat/user-message-text-bubble";
 
-/** Notra chatgpt-message user bubble */
+export { Message, MessageContent, ChatActivityStatus, UserMessageTextBubble };
+
+/** User turn — Notra Message + MessageContent (agent chat). */
 export function ChatUserBubble({
   children,
   className,
@@ -17,98 +29,78 @@ export function ChatUserBubble({
   className?: string;
 }) {
   return (
-    <div className={cn("flex justify-end", className)}>
-      <div className="max-w-[85%] rounded-[1.5rem] bg-secondary px-[18px] py-2.5 text-[15px] leading-6 text-foreground md:max-w-[70%]">
-        {children}
-      </div>
-    </div>
+    <Message from="user" className={className}>
+      <MessageContent>{children}</MessageContent>
+    </Message>
   );
 }
 
-/** Notra chatgpt-message assistant block */
+/** Assistant turn — Notra Message + MessageContent; optional activity/reasoning row. */
 export function ChatAssistantBlock({
   children,
   reasoning,
-  actions,
   className,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   reasoning?: ReactNode;
-  actions?: ReactNode;
   className?: string;
 }) {
   return (
-    <div className={cn("group/chatgpt-msg flex flex-col items-start gap-2", className)}>
-      {reasoning}
-      <div className="max-w-full text-[15px] leading-7 text-foreground">{children}</div>
-      {actions ? (
-        <div className="opacity-100 transition-opacity duration-150 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/chatgpt-msg:opacity-100 group-focus-within/chatgpt-msg:opacity-100 -ms-2">
-          {actions}
-        </div>
-      ) : null}
-    </div>
+    <Message from="assistant" className={className}>
+      <MessageContent>
+        {reasoning}
+        {children}
+      </MessageContent>
+    </Message>
   );
 }
 
-
-/** Pending assistant row (Notra ChatActivityStatus / BrailleLoader "Thinking") */
+/** Pending assistant row — Notra ChatActivityStatus (BrailleLoader Thinking). */
 export function ThinkingIndicator({
   label = "Thinking",
+  seconds = 0,
+  active = true,
   className,
 }: {
   label?: string;
+  seconds?: number;
+  active?: boolean;
   className?: string;
 }) {
   return (
-    <div
+    <span
       className={cn(
-        "animate-in fade-in flex min-h-5 items-center gap-2 text-[15px] leading-7 text-muted-foreground duration-300",
+        "text-muted-foreground flex items-center gap-2 text-sm leading-5",
         className,
       )}
       role="status"
-      aria-live="polite"
-      aria-label={label}
     >
-      <BrailleLoader
-        className="h-5 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!"
-        label={label}
-        variant="shimmer"
-      />
-    </div>
+      <ChatActivityStatus active={active} label={label} seconds={seconds} />
+    </span>
   );
 }
 
-/** Streaming / analyzing indicator (Notra Shimmer "Thinking") */
+/** Analyzing / streaming — same ChatActivityStatus with Cavio dental label. */
 export function AnalyzingIndicator({
-  label = "Analyzing scan…",
+  label = "Analyzing scan",
+  seconds = 0,
   className,
 }: {
   label?: string;
+  seconds?: number;
   className?: string;
 }) {
-  const reduce =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   return (
-    <div
-      className={cn(
-        "animate-in fade-in flex items-center gap-2 text-[15px] leading-7 text-muted-foreground duration-300",
-        className,
-      )}
-      role="status"
-      aria-live="polite"
-    >
-      <Loader size={16} />
-      {reduce ? (
-        <span className="font-medium">{label}</span>
-      ) : (
-        <Shimmer className="font-medium">{label}</Shimmer>
-      )}
-    </div>
+    <ThinkingIndicator
+      active
+      className={className}
+      label={label}
+      seconds={seconds}
+    />
   );
 }
 
-/** Conversation empty / idle prompt */
+/** Conversation empty / idle prompt (FindingsTable empty). */
 export function ChatEmptyState({
   title,
   description,
@@ -146,7 +138,7 @@ export function ChatEmptyState({
   );
 }
 
-/** Inline error banner (Notra Alert destructive) */
+/** Inline error banner (Notra Alert destructive). */
 export function ErrorBanner({
   title = "Something went wrong",
   description,
@@ -200,7 +192,6 @@ export function SettingsCreditsSkeleton() {
 
 /**
  * Full settings shell skeleton — mirrors SettingsShell (nav + header + pane).
- * Use while settings route / credits are hydrating so layout does not jump.
  */
 export function SettingsShellSkeleton({ className }: { className?: string }) {
   return (
@@ -274,7 +265,6 @@ export function AnalyzeComposerSkeleton({ className }: { className?: string }) {
 
 /**
  * Result / streaming skeleton — mirrors Analyze result (back+title, image, findings).
- * Prefer this over a generic card when loading a saved patient or mid-analyze.
  */
 export function AnalyzeResultSkeleton() {
   return (
