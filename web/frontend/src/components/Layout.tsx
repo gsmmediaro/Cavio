@@ -23,7 +23,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarRail,
   SidebarSeparator,
 } from "@notra/ui/components/ui/sidebar";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
@@ -120,8 +119,9 @@ export default function Layout({ children }: Props) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
+                  type="button"
                   tooltip={t("layout.nav.newScan")}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground cursor-pointer"
+                  className="cursor-pointer"
                   onClick={handleNewScan}
                 >
                   <Plus className="size-4 pointer-events-none" />
@@ -221,7 +221,6 @@ export default function Layout({ children }: Props) {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
-          <SidebarRail />
         </Sidebar>
 
         <SidebarInset className={cn("min-h-0 min-w-0 overflow-hidden")}>

@@ -4,8 +4,7 @@ import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { cn } from "@notra/ui/lib/utils";
 import type { ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
-import { CtaButton } from "@/components/ui/cta-button";
+import { Button } from "@/components/button";
 
 export type PlanCardFeature = {
   text: string;
@@ -15,7 +14,7 @@ export type PlanCardFeature = {
 export type PlanCardButton = {
   label: string;
   disabled?: boolean;
-  variant?: "default" | "outline" | "cta";
+  variant?: "default" | "outline";
   onClick: () => void;
 };
 
@@ -37,7 +36,7 @@ function planCardClassName(highlighted: boolean, featured: boolean): string {
   return "transition-all hover:ring-2 hover:ring-muted-foreground/20";
 }
 
-/** Port of Notra PlanCard . Cavio keeps Stripe/credits CTA (green primary). */
+/** Port of Notra PlanCard. Uses dashboard Button + CTA_PRIMARY inset glow. */
 export function PlanCard({
   name,
   description,
@@ -66,20 +65,14 @@ export function PlanCard({
           </div>
         </div>
 
-        {button.variant === "cta" ? (
-          <CtaButton className="h-11 w-full" disabled={button.disabled} onClick={button.onClick}>
-            {button.label}
-          </CtaButton>
-        ) : (
-          <Button
-            className="w-full"
-            disabled={button.disabled}
-            onClick={button.onClick}
-            variant={button.variant === "outline" ? "outline" : "default"}
-          >
-            {button.label}
-          </Button>
-        )}
+        <Button
+          className="w-full"
+          disabled={button.disabled}
+          onClick={button.onClick}
+          variant={button.variant === "outline" ? "outline" : "default"}
+        >
+          {button.label}
+        </Button>
 
         <ul className="space-y-2.5 pt-2">
           {features.map((feature) => (

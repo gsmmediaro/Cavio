@@ -7,7 +7,7 @@ import { CreditSummaryCards } from "@/components/billing/credit-summary-cards";
 import { UpgradePaywallDialog } from "@/components/billing/upgrade-paywall-dialog";
 import { ErrorBanner } from "@/components/chat/notra-chat-states";
 import { SettingsPane } from "@/components/settings/settings-pane";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 
 type CreditsPaneProps = {
   credits: CreditsInfo | null;

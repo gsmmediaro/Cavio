@@ -18,8 +18,7 @@ import { UpgradePaywallDialog } from "../components/billing/upgrade-paywall-dial
 import FindingsTable from "../components/FindingsTable";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/ui/button";
-import { CtaButton } from "../components/ui/cta-button";
+import { Button } from "../components/button";
 import { Badge } from "../components/ui/badge";
 import { cn } from "../lib/utils";
 import { toast } from "sonner";
@@ -577,7 +576,7 @@ export default function AnalyzeScan() {
                 {t("analyze.home.askRadiograph", {
                   name: patientName.trim(),
                   defaultValue:
-                    "Please attach a radiograph for {{name}} — panoramic or bitewing.",
+                    "Please attach a radiograph for {{name}} - panoramic or bitewing.",
                 })}
               </p>
             </ChatAssistantBlock>
@@ -799,9 +798,9 @@ export default function AnalyzeScan() {
             {resultImageError && !preview ? (
               <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 p-8 text-center text-sm text-white/75">
                 <span>{t("analyze.savedImageUnavailable")}</span>
-                <CtaButton type="button" size="default" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
+                <Button type="button" size="default" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
                   {t("analyze.startNewScan")}
-                </CtaButton>
+                </Button>
               </div>
             ) : (
               <img
@@ -834,9 +833,9 @@ export default function AnalyzeScan() {
         <div className="mt-auto rounded-2xl border border-border bg-background p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">Analyze another panoramic or bitewing.</p>
-            <CtaButton type="button" size="default" className="h-8 px-4 text-sm" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
+            <Button type="button" size="default" className="h-8 px-4 text-sm" onClick={() => navigate(`/analyze?new=${Date.now()}`)}>
               {t("analyze.newScan")}
-            </CtaButton>
+            </Button>
           </div>
         </div>
       </div>

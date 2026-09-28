@@ -7,7 +7,7 @@ import { createCheckoutSession, type CreditsInfo, type PlanInfo } from "@/api/cl
 import { PlanCard } from "@/components/billing/plan-card";
 import { UpgradePaywallDialog } from "@/components/billing/upgrade-paywall-dialog";
 import { SettingsPane } from "@/components/settings/settings-pane";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CAVIO_PAID_PLAN_DEFS,
@@ -178,7 +178,7 @@ export function BillingSettingsPane({ credits, creditsLoading }: BillingPaneProp
                 button={{
                   label: subscribeLabel,
                   disabled: buyingPlan !== null || isCurrent,
-                  variant: featured ? "cta" : "outline",
+                  variant: featured ? "default" : "outline",
                   onClick: () => void handleSubscribe(plan.id),
                 }}
                 description={plan.description}

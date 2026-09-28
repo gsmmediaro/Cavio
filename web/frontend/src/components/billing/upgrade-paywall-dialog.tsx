@@ -123,7 +123,7 @@ export function UpgradePaywallDialog({
                     button={{
                       label,
                       disabled: buyingPlan !== null,
-                      variant: featured ? "cta" : "outline",
+                      variant: featured ? "default" : "outline",
                       onClick: () => void handleSubscribe(plan.id),
                     }}
                     description={plan.description}
