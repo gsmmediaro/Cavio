@@ -554,12 +554,12 @@ export default function AnalyzeScan() {
         </motion.div>
 
         {/* Greeting */}
-        <motion.h1
+        <motion.h1 className="font-sans"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
           style={{
-            fontFamily: "var(--font-display)",
+            fontFamily: "var(--font-inter)",
             fontSize: isMobile ? 36 : 52,
             fontWeight: 400,
             color: "var(--color-ink)",
@@ -659,7 +659,7 @@ export default function AnalyzeScan() {
             placeholder={
               nameSubmitted
                 ? t("analyze.home.attachPlaceholder", {
-                    defaultValue: "Attach a radiograph to continue…",
+                    defaultValue: "Attach a radiograph to continueâ€¦",
                   })
                 : t("analyze.home.inputPlaceholder")
             }
@@ -732,7 +732,7 @@ export default function AnalyzeScan() {
   /* --------- LOADING / STREAMING STATE (Notra shimmer) --------- */
   if (loading && !result) {
     const loadingPatient = Boolean(new URLSearchParams(location.search).get("patient"));
-    // Opening a past chat → mirror result chrome. Fresh analyze → stream under composer-shaped chrome.
+    // Opening a past chat â†’ mirror result chrome. Fresh analyze â†’ stream under composer-shaped chrome.
     if (loadingPatient && !file && !preview) {
       return (
         <>
@@ -770,7 +770,7 @@ export default function AnalyzeScan() {
     );
   }
 
-  /*  ───────── RESULT VIEW (saved or fresh scan) --------- */
+  /*  â”€â”€â”€â”€â”€â”€â”€â”€â”€ RESULT VIEW (saved or fresh scan) --------- */
   if (result) {
     const savedSuspicionColor = {
       low: { bg: "var(--color-low-bg)", text: "var(--color-low)" },
@@ -833,7 +833,7 @@ export default function AnalyzeScan() {
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
-              {result.modality} Â· {result.filename || "scan"}
+              {result.modality} Ã‚Â· {result.filename || "scan"}
             </div>
             {(preview || result.annotated_image_url) && !resultImageError ? (
               <div className="mt-3 overflow-hidden rounded-xl border border-border/60">

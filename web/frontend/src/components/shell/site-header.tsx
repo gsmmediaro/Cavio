@@ -1,4 +1,4 @@
-﻿import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LogOut, Settings, HelpCircle } from "lucide-react";
 import { Separator } from "@notra/ui/components/ui/separator";
@@ -58,7 +58,7 @@ export function SiteHeader() {
           orientation="vertical"
           className="bg-border mx-2 h-4 w-px shrink-0 self-center data-[orientation=vertical]:h-4 data-[orientation=vertical]:w-px data-[orientation=vertical]:self-center"
         />
-        <h1 className="truncate text-sm font-medium text-foreground">{title}</h1>
+        <h1 className="truncate font-sans text-sm font-medium text-foreground" style={{ fontFamily: "var(--font-inter)" }}>{title}</h1>
         <div className="ml-auto flex items-center gap-1">
           {user ? (
             <DropdownMenu>
