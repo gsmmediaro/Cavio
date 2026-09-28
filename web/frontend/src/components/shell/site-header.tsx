@@ -56,7 +56,7 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator
           orientation="vertical"
-          className="mx-1 data-[orientation=vertical]:h-4"
+          className="bg-border mx-2 h-4 w-px shrink-0 self-center data-[orientation=vertical]:h-4 data-[orientation=vertical]:w-px data-[orientation=vertical]:self-center"
         />
         <h1 className="truncate text-sm font-medium text-foreground">{title}</h1>
         <div className="ml-auto flex items-center gap-1">
