@@ -17,8 +17,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 export type AnalyzeComposerProps = {
+  /** Draft text in the composer input (cleared after successful send, like Notra). */
+  composerValue: string;
+  onComposerValueChange: (value: string) => void;
+  /** Committed patient name after name submit (gates attach / analyze). */
   patientName: string;
-  onPatientNameChange: (value: string) => void;
   /** True after the user commits a non-empty patient name (Enter / Send). */
   nameSubmitted?: boolean;
   /** Called when user commits the patient name (no file yet). */
@@ -49,8 +52,9 @@ export type AnalyzeComposerProps = {
 };
 
 export function AnalyzeComposer({
+  composerValue,
+  onComposerValueChange,
   patientName,
-  onPatientNameChange,
   nameSubmitted = false,
   onSubmitName,
   placeholder,
@@ -79,11 +83,15 @@ export function AnalyzeComposer({
 }: AnalyzeComposerProps) {
   const patientFieldId = "cavio-analyze-patient";
   const fileInputId = "cavio-analyze-file";
-  const hasName = Boolean(patientName.trim());
+  const draft = composerValue;
+  const committedName = patientName.trim();
+  const draftName = draft.trim();
+  /** Before commit: draft is the name. After commit: patientName gates attach. */
+  const hasName = nameSubmitted ? Boolean(committedName) : Boolean(draftName);
   const canAttach = hasName;
   const canSend = Boolean(file) && !loading;
   /** Name step: Send commits name. Radiograph step: Send analyzes when file ready. */
-  const canCommitName = hasName && !file && !loading;
+  const canCommitName = !nameSubmitted && Boolean(draftName) && !file && !loading;
   const showAttachAndModality = hasName;
   const focusPatient = () => {
     document.getElementById(patientFieldId)?.focus();
@@ -133,8 +141,12 @@ export function AnalyzeComposer({
       onAnalyze();
       return;
     }
-    if (hasName) {
+    if (!nameSubmitted && draftName) {
       onSubmitName?.();
+      return;
+    }
+    if (nameSubmitted && hasName) {
+      onPickFile();
     }
   };
 
@@ -145,7 +157,14 @@ export function AnalyzeComposer({
     }
   };
 
-  const sendDisabled = file ? !canSend : !canCommitName;
+  /** After name commit, Send opens attach (enabled). Before, Send commits name. */
+  const sendDisabled = loading
+    ? true
+    : file
+      ? !canSend
+      : nameSubmitted
+        ? !hasName
+        : !canCommitName;
   const sendLabelResolved = file
     ? sendLabel
     : nameSubmitted
@@ -234,8 +253,8 @@ export function AnalyzeComposer({
                   id={patientFieldId}
                   type="text"
                   placeholder={placeholder}
-                  value={patientName}
-                  onChange={(e) => onPatientNameChange(e.target.value)}
+                  value={composerValue}
+                  onChange={(e) => onComposerValueChange(e.target.value)}
                   onFocus={() => onFocusedChange?.(true)}
                   onBlur={() => onFocusedChange?.(false)}
                   onKeyDown={handleKeyDown}
@@ -311,11 +330,12 @@ export function AnalyzeComposer({
                   onAnalyze();
                   return;
                 }
-                if (!hasName) return;
                 if (!nameSubmitted) {
+                  if (!draftName) return;
                   onSubmitName?.();
                   return;
                 }
+                if (!hasName) return;
                 onPickFile();
               }}
             >

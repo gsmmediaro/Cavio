@@ -28,6 +28,7 @@ import {
   ChatAssistantBlock,
   ChatUserBubble,
   ErrorBanner,
+  ThinkingIndicator,
 } from "../components/chat/notra-chat-states";
 import { AnalyzeComposer } from "../components/chat/analyze-composer";
 
@@ -83,7 +84,10 @@ export default function AnalyzeScan() {
   const [toothAssign, setToothAssign] = useState(false);
   const [modality, setModality] = useState<"Panoramic" | "Bitewing">("Panoramic");
   const [patientName, setPatientName] = useState("");
+  const [composerValue, setComposerValue] = useState("");
   const [nameSubmitted, setNameSubmitted] = useState(false);
+  /** Notra-style pending row after name send, before scripted assistant reply. */
+  const [nameReplyPending, setNameReplyPending] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [savedScanId, setSavedScanId] = useState<string | null>(null);
@@ -114,6 +118,7 @@ export default function AnalyzeScan() {
   const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const patientInputRef = useRef<HTMLInputElement>(null);
+  const nameReplyTimerRef = useRef<number | null>(null);
 
   const firstName = userProfile?.firstName || user?.displayName?.split(" ")[0] || "";
 
@@ -124,6 +129,15 @@ export default function AnalyzeScan() {
     if (hour < 17) return t("analyze.greeting.afternoon");
     return t("analyze.greeting.evening");
   };
+
+  useEffect(() => {
+    // Clear name-reply thinking timer on unmount
+    return () => {
+      if (nameReplyTimerRef.current != null) {
+        window.clearTimeout(nameReplyTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     getModels()
@@ -160,7 +174,9 @@ export default function AnalyzeScan() {
     setResult(null);
     setError("");
     setPatientName("");
+    setComposerValue("");
     setNameSubmitted(false);
+    setNameReplyPending(false);
     setLoading(false);
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -199,6 +215,9 @@ export default function AnalyzeScan() {
         }
 
         setPatientName(patient);
+        setComposerValue("");
+        setNameSubmitted(true);
+        setNameReplyPending(false);
         setNameSubmitted(true);
         setFile(null);
         setPreview(null);
@@ -366,6 +385,8 @@ export default function AnalyzeScan() {
   const isMobile = window.innerWidth <= 768;
 
   const isWelcome = !result && !loading;
+  /** After first turn (name commit), empty greeting hides and conversation chrome takes over. */
+  const hasConversation = nameSubmitted;
 
   const paywallDialog = (
     <UpgradePaywallDialog
@@ -395,8 +416,8 @@ export default function AnalyzeScan() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          padding: isMobile ? "40px 20px" : "60px 32px",
+          justifyContent: hasConversation ? "flex-start" : "center",
+          padding: isMobile ? "40px 20px" : hasConversation ? "28px 32px 60px" : "60px 32px",
           maxWidth: 680,
           width: "100%",
           margin: "0 auto",
@@ -455,6 +476,8 @@ export default function AnalyzeScan() {
           )}
         </AnimatePresence>
 
+        {!hasConversation ? (
+        <>
         {/* Avatar cluster â€” Quinn logo + two dental professional avatars */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -559,27 +582,37 @@ export default function AnalyzeScan() {
             <p>{t("analyze.home.desc3")}</p>
           </motion.div>
         )}
+        </>
+        ) : null}
 
-        {/* Scripted chat: name committed → ask for radiograph (Notra agent elements) */}
+        {/* Scripted chat: name committed -> ask for radiograph (Notra agent elements) */}
         {nameSubmitted && patientName.trim() ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="mb-6 flex w-full max-w-[680px] flex-col gap-4"
+            className="mb-6 flex w-full max-w-[680px] flex-1 flex-col gap-4"
           >
             <ChatUserBubble>
               <div className="font-medium">{patientName.trim()}</div>
             </ChatUserBubble>
-            <ChatAssistantBlock>
-              <p>
-                {t("analyze.home.askRadiograph", {
-                  name: patientName.trim(),
-                  defaultValue:
-                    "Please attach a radiograph for {{name}} - panoramic or bitewing.",
-                })}
-              </p>
-            </ChatAssistantBlock>
+            {nameReplyPending ? (
+              <ChatAssistantBlock>
+                <ThinkingIndicator
+                  label={t("analyze.thinking", { defaultValue: "Thinking" })}
+                />
+              </ChatAssistantBlock>
+            ) : (
+              <ChatAssistantBlock>
+                <p>
+                  {t("analyze.home.askRadiograph", {
+                    name: patientName.trim(),
+                    defaultValue:
+                      "Please attach a radiograph for {{name}} - panoramic or bitewing.",
+                  })}
+                </p>
+              </ChatAssistantBlock>
+            )}
           </motion.div>
         ) : null}
 
@@ -591,15 +624,24 @@ export default function AnalyzeScan() {
           className="mb-4 w-full max-w-[680px]"
         >
           <AnalyzeComposer
+            composerValue={composerValue}
+            onComposerValueChange={setComposerValue}
             patientName={patientName}
-            onPatientNameChange={(value) => {
-              setPatientName(value);
-              if (!value.trim()) setNameSubmitted(false);
-            }}
             nameSubmitted={nameSubmitted}
             onSubmitName={() => {
-              if (!patientName.trim()) return;
+              const name = composerValue.trim();
+              if (!name) return;
+              setPatientName(name);
+              setComposerValue("");
               setNameSubmitted(true);
+              setNameReplyPending(true);
+              if (nameReplyTimerRef.current != null) {
+                window.clearTimeout(nameReplyTimerRef.current);
+              }
+              nameReplyTimerRef.current = window.setTimeout(() => {
+                setNameReplyPending(false);
+                nameReplyTimerRef.current = null;
+              }, 900);
             }}
             placeholder={
               nameSubmitted
@@ -614,13 +656,25 @@ export default function AnalyzeScan() {
             preview={preview}
             onClearFile={clearFile}
             onPickFile={() => {
-              if (!patientName.trim()) return;
-              if (!nameSubmitted) setNameSubmitted(true);
+              const name = patientName.trim() || composerValue.trim();
+              if (!name) return;
+              if (!nameSubmitted) {
+                setPatientName(name);
+                setComposerValue("");
+                setNameSubmitted(true);
+                setNameReplyPending(false);
+              }
               inputRef.current?.click();
             }}
             onFileDrop={(f) => {
-              if (!patientName.trim()) return;
-              if (!nameSubmitted) setNameSubmitted(true);
+              const name = patientName.trim() || composerValue.trim();
+              if (!name) return;
+              if (!nameSubmitted) {
+                setPatientName(name);
+                setComposerValue("");
+                setNameSubmitted(true);
+                setNameReplyPending(false);
+              }
               handleFile(f);
             }}
             onAnalyze={() => { void handleAnalyze(); }}
@@ -633,8 +687,14 @@ export default function AnalyzeScan() {
             fileInputRef={inputRef}
             onFileInputChange={(f) => {
               if (!f) return;
-              if (!patientName.trim()) return;
-              if (!nameSubmitted) setNameSubmitted(true);
+              const name = patientName.trim() || composerValue.trim();
+              if (!name) return;
+              if (!nameSubmitted) {
+                setPatientName(name);
+                setComposerValue("");
+                setNameSubmitted(true);
+                setNameReplyPending(false);
+              }
               handleFile(f);
             }}
             dragOver={dragOver}

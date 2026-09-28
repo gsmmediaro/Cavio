@@ -1,6 +1,7 @@
 ﻿import type { ReactNode } from "react";
 import { AlertCircleIcon, InboxIcon, RefreshCwIcon } from "lucide-react";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
+import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 import { Loader } from "@notra/ui/components/ai-elements/loader";
 import { Alert, AlertDescription, AlertTitle } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
@@ -45,6 +46,34 @@ export function ChatAssistantBlock({
           {actions}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+
+/** Pending assistant row (Notra ChatActivityStatus / BrailleLoader "Thinking") */
+export function ThinkingIndicator({
+  label = "Thinking",
+  className,
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "animate-in fade-in flex min-h-5 items-center gap-2 text-[15px] leading-7 text-muted-foreground duration-300",
+        className,
+      )}
+      role="status"
+      aria-live="polite"
+      aria-label={label}
+    >
+      <BrailleLoader
+        className="h-5 items-center text-sm leading-5 motion-reduce:[&>span]:animate-none!"
+        label={label}
+        variant="shimmer"
+      />
     </div>
   );
 }
