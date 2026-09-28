@@ -1,41 +1,41 @@
 {
   "auth": {
     "login": {
-      "title": "AcceseazÄƒ Asistentul TÄƒu AI Stomatologic",
-      "subtitle": "ConecteazÄƒ-te sau creeazÄƒ un cont nou",
+      "title": "Conectare la Cavio",
+      "subtitle": "Conectează-te sau creează un cont nou",
       "emailBtn": "Conectare cu email",
-      "googleBtn": "ContinuÄƒ cu Google",
-      "noAccount": "EÈ™ti nou aici?",
-      "createAccount": "CreeazÄƒ un cont"
+      "googleBtn": "Continuă cu Google",
+      "noAccount": "Ești nou aici?",
+      "createAccount": "Creează un cont"
     },
     "register": {
-      "title": "Analiza StomatologicÄƒ AI GratuitÄƒ",
-      "subtitle": "Alege o metodÄƒ de Ã®nregistrare",
-      "emailBtn": "ÃŽnregistrare cu email",
-      "googleBtn": "ÃŽnregistrare cu Google",
+      "title": "Creează cont Cavio",
+      "subtitle": "Alege o metodă de înregistrare",
+      "emailBtn": "Înregistrare cu email",
+      "googleBtn": "Înregistrare cu Google",
       "hasAccount": "Ai deja un cont?",
-      "loginHere": "ConecteazÄƒ-te aici",
-      "termsText": "Prin Ã®nregistrare, eÈ™ti de acord cu",
-      "termsLink": "Termenii È™i CondiÈ›iile",
-      "and": "È™i",
-      "privacyLink": "Politica de ConfidenÈ›ialitate"
+      "loginHere": "Conectează-te aici",
+      "termsText": "Prin înregistrare, ești de acord cu",
+      "termsLink": "Termenii și Condițiile",
+      "and": "și",
+      "privacyLink": "Politica de Confidențialitate"
     },
     "emailForm": {
       "signIn": "Conectare",
-      "createAccount": "CreeazÄƒ-È›i contul",
+      "createAccount": "Creează-ți contul",
       "firstName": "Prenume",
       "lastName": "Nume",
       "email": "Email",
-      "password": "ParolÄƒ",
-      "loading": "Se Ã®ncarcÄƒ...",
-      "createAccountBtn": "CreeazÄƒ cont"
+      "password": "Parolă",
+      "loading": "Se încarcă...",
+      "createAccountBtn": "Creează cont"
     },
     "errors": {
       "emailInUse": "Acest email este deja utilizat",
-      "invalidEmail": "AdresÄƒ de email invalidÄƒ",
-      "weakPassword": "Parola trebuie sÄƒ aibÄƒ cel puÈ›in 6 caractere",
-      "wrongCredentials": "Email sau parolÄƒ incorectÄƒ",
-      "enterFirstName": "Introdu prenumele tÄƒu"
+      "invalidEmail": "Adresă de email invalidă",
+      "weakPassword": "Parola trebuie să aibă cel puțin 6 caractere",
+      "wrongCredentials": "Email sau parolă incorectă",
+      "enterFirstName": "Introdu prenumele tău"
     },
     "divider": {
       "or": "SAU"
@@ -43,31 +43,31 @@
   },
   "layout": {
     "nav": {
-      "newScan": "AnalizÄƒ NouÄƒ",
+      "newScan": "Analiză Nouă",
       "recentScans": "Analize Recente",
       "viewAll": "Vezi toate",
-      "patients": "PacienÈ›i",
-      "helpResources": "Ajutor È™i Resurse",
-      "settings": "SetÄƒri",
-      "accountSettings": "SetÄƒri Cont",
+      "patients": "Pacienți",
+      "helpResources": "Ajutor și Resurse",
+      "settings": "Setări",
+      "accountSettings": "Setări Cont",
       "logout": "Deconectare",
-      "signOut": "IeÈ™ire din cont",
+      "signOut": "Ieșire din cont",
       "logIn": "Conectare",
       "openMenu": "Deschide meniul",
       "help": "Ajutor"
     },
     "patients": {
-      "noPatients": "Nu existÄƒ pacienÈ›i.",
-      "scansWillAppear": "Analizele cu nume vor apÄƒrea aici.",
-      "noScans": "Nu existÄƒ analize.",
-      "scan": "analizÄƒ",
+      "noPatients": "Nu există pacienți.",
+      "scansWillAppear": "Analizele cu nume vor apărea aici.",
+      "noScans": "Nu există analize.",
+      "scan": "analiză",
       "scans": "analize"
     },
-    "disclaimer": "DiscutaÈ›i Ã®ntotdeauna rezultatele Cavio cu un dentist. Cavio este un asistent AI, nu un practician autorizat, È™i nu oferÄƒ sfaturi sau Ã®ngrijiri medicale. Prin utilizarea Cavio, eÈ™ti de acord cu",
+    "disclaimer": "Discutați întotdeauna rezultatele Cavio cu un dentist. Cavio este un asistent AI, nu un practician autorizat, și nu oferă sfaturi sau îngrijiri medicale. Prin utilizarea Cavio, ești de acord cu",
     "footer": {
       "terms": "Termenii Serviciului",
-      "privacy": "Politica de ConfidenÈ›ialitate",
-      "and": "È™i"
+      "privacy": "Politica de Confidențialitate",
+      "and": "și"
     }
   },
   "onboarding": {
@@ -77,22 +77,22 @@
       "rolePlaceholder": "Rol",
       "agreeText": "Sunt de acord cu",
       "terms": "Termenii",
-      "and": "È™i",
-      "privacy": "Politica de ConfidenÈ›ialitate"
+      "and": "și",
+      "privacy": "Politica de Confidențialitate"
     },
     "step1": {
-      "title": "OrganizaÈ›ia ta",
-      "orgName": "Numele organizaÈ›iei",
-      "dentistsPlaceholder": "CÃ¢È›i dentiÈ™ti lucreazÄƒ la clinica ta?",
-      "back": "ÃŽnapoi"
+      "title": "Organizația ta",
+      "orgName": "Numele organizației",
+      "dentistsPlaceholder": "Câți dentiști lucrează la clinica ta?",
+      "back": "Înapoi"
     },
     "step2": {
       "title": "Bun venit!",
-      "trialText": "Ai 7 zile de acces gratuit din partea noastrÄƒ.",
-      "getStarted": "ÃŽncepe",
-      "saving": "Se salveazÄƒ..."
+      "trialText": "Ai 7 zile de acces gratuit din partea noastră.",
+      "getStarted": "Începe",
+      "saving": "Se salvează..."
     },
-    "continue": "ContinuÄƒ",
+    "continue": "Continuă",
     "specialties": {
       "General dentist": "Dentist generalist",
       "Orthodontist": "Ortodont",
@@ -114,128 +114,145 @@
       "Solo": "Solo"
     },
     "legalModal": {
-      "terms": "Termeni È™i CondiÈ›ii",
-      "privacy": "PoliticÄƒ de ConfidenÈ›ialitate"
+      "terms": "Termeni și Condiții",
+      "privacy": "Politică de Confidențialitate"
     },
     "termsContent": {
-      "title": "Termeni È™i CondiÈ›ii",
+      "title": "Termeni și Condiții",
       "s1h": "1. Acceptarea termenilor",
-      "s1p": "Prin utilizarea platformei Cavio, acceptaÈ›i Ã®n totalitate aceÈ™ti termeni È™i condiÈ›ii. DacÄƒ nu sunteÈ›i de acord cu oricare dintre prevederi, vÄƒ rugÄƒm sÄƒ nu utilizaÈ›i platforma.",
+      "s1p": "Prin utilizarea platformei Cavio, acceptați în totalitate acești termeni și condiții. Dacă nu sunteți de acord cu oricare dintre prevederi, vă rugăm să nu utilizați platforma.",
       "s2h": "2. Descrierea serviciului",
-      "s2p": "Cavio este un instrument de suport bazat pe AI, conceput pentru a ajuta profesioniÈ™tii stomatologici Ã®n analiza radiografiilor dentare. Platforma nu Ã®nlocuieÈ™te diagnosticul clinic profesional.",
-      "s3h": "3. Utilizarea corectÄƒ",
-      "s3p": "Rezultatele furnizate de platformÄƒ sunt indicative È™i trebuie validate de un profesionist calificat. Utilizatorul este responsabil pentru toate deciziile clinice bazate pe informaÈ›iile furnizate.",
+      "s2p": "Cavio este un instrument de suport bazat pe AI, conceput pentru a ajuta profesioniștii stomatologici în analiza radiografiilor dentare. Platforma nu înlocuiește diagnosticul clinic profesional.",
+      "s3h": "3. Utilizarea corectă",
+      "s3p": "Rezultatele furnizate de platformă sunt indicative și trebuie validate de un profesionist calificat. Utilizatorul este responsabil pentru toate deciziile clinice bazate pe informațiile furnizate.",
       "s4h": "4. Contul de utilizator",
-      "s4p": "EÈ™ti responsabil pentru menÈ›inerea confidenÈ›ialitÄƒÈ›ii contului È™i parolei tale. Orice activitate efectuatÄƒ prin contul tÄƒu este responsabilitatea ta.",
-      "s5h": "5. Perioada de probÄƒ",
-      "s5p": "Utilizatorii noi beneficiazÄƒ de o perioadÄƒ de probÄƒ gratuitÄƒ de 7 zile. DupÄƒ perioada de probÄƒ, accesul la funcÈ›iile premium poate fi restricÈ›ionat.",
-      "s6h": "6. Limitarea rÄƒspunderii",
-      "s6p": "Cavio nu este responsabil pentru deciziile clinice luate pe baza rezultatelor platformei. Serviciul este furnizat \"ca atare\", fÄƒrÄƒ garanÈ›ii de niciun fel.",
-      "s7h": "7. ModificÄƒri ale termenilor",
-      "s7p": "Ne rezervÄƒm dreptul de a modifica aceÈ™ti termeni Ã®n orice moment. Utilizatorii vor fi notificaÈ›i prin intermediul platformei cu privire la modificÄƒrile semnificative."
+      "s4p": "Ești responsabil pentru menținerea confidențialității contului și parolei tale. Orice activitate efectuată prin contul tău este responsabilitatea ta.",
+      "s5h": "5. Perioada de probă",
+      "s5p": "Utilizatorii noi beneficiază de o perioadă de probă gratuită de 7 zile. După perioada de probă, accesul la funcțiile premium poate fi restricționat.",
+      "s6h": "6. Limitarea răspunderii",
+      "s6p": "Cavio nu este responsabil pentru deciziile clinice luate pe baza rezultatelor platformei. Serviciul este furnizat \"ca atare\", fără garanții de niciun fel.",
+      "s7h": "7. Modificări ale termenilor",
+      "s7p": "Ne rezervăm dreptul de a modifica acești termeni în orice moment. Utilizatorii vor fi notificați prin intermediul platformei cu privire la modificările semnificative."
     },
     "privacyContent": {
-      "title": "PoliticÄƒ de ConfidenÈ›ialitate",
+      "title": "Politică de Confidențialitate",
       "s1h": "1. Date colectate",
-      "s1p": "ColectÄƒm urmÄƒtoarele date: nume, adresÄƒ de email, informaÈ›ii despre organizaÈ›ie È™i date despre radiografiile Ã®ncÄƒrcate pentru analizÄƒ. Aceste date sunt necesare pentru furnizarea serviciului.",
+      "s1p": "Colectăm următoarele date: nume, adresă de email, informații despre organizație și date despre radiografiile încărcate pentru analiză. Aceste date sunt necesare pentru furnizarea serviciului.",
       "s2h": "2. Utilizarea datelor",
-      "s2p": "Datele tale sunt utilizate exclusiv pentru furnizarea È™i Ã®mbunÄƒtÄƒÈ›irea serviciilor Cavio. Nu vindem sau partajÄƒm datele personale cu terÈ›i fÄƒrÄƒ consimÈ›ÄƒmÃ¢ntul tÄƒu explicit.",
+      "s2p": "Datele tale sunt utilizate exclusiv pentru furnizarea și îmbunătățirea serviciilor Cavio. Nu vindem sau partajăm datele personale cu terți fără consimțământul tău explicit.",
       "s3h": "3. Stocarea datelor",
-      "s3p": "Datele sunt stocate Ã®n siguranÈ›Äƒ pe serverele Firebase (Google Cloud). Fiecare utilizator poate accesa doar propriile date. ImplementÄƒm mÄƒsuri de securitate adecvate pentru protejarea informaÈ›iilor.",
+      "s3p": "Datele sunt stocate în siguranță pe serverele Firebase (Google Cloud). Fiecare utilizator poate accesa doar propriile date. Implementăm măsuri de securitate adecvate pentru protejarea informațiilor.",
       "s4h": "4. Datele pacientului",
-      "s4p": "Radiografiile È™i datele pacienÈ›ilor sunt stocate Ã®n siguranÈ›Äƒ È™i sunt accesibile numai utilizatorului care le-a Ã®ncÄƒrcat. Nu utilizÄƒm datele pacienÈ›ilor pentru antrenarea modelelor AI fÄƒrÄƒ consimÈ›ÄƒmÃ¢nt explicit.",
+      "s4p": "Radiografiile și datele pacienților sunt stocate în siguranță și sunt accesibile numai utilizatorului care le-a încărcat. Nu utilizăm datele pacienților pentru antrenarea modelelor AI fără consimțământ explicit.",
       "s5h": "5. Drepturile utilizatorului",
-      "s5p": "Ai dreptul de a accesa, modifica sau È™terge datele tale personale Ã®n orice moment. Pentru cereri privind datele personale, contacteazÄƒ-ne la adresa de email de suport.",
+      "s5p": "Ai dreptul de a accesa, modifica sau șterge datele tale personale în orice moment. Pentru cereri privind datele personale, contactează-ne la adresa de email de suport.",
       "s6h": "6. Cookie-uri",
-      "s6p": "Platforma utilizeazÄƒ cookie-uri esenÈ›iale pentru autentificare È™i funcÈ›ionare corectÄƒ. Nu utilizÄƒm cookie-uri de urmÄƒrire sau publicitate."
+      "s6p": "Platforma utilizează cookie-uri esențiale pentru autentificare și funcționare corectă. Nu utilizăm cookie-uri de urmărire sau publicitate."
     }
   },
   "analyze": {
     "greeting": {
-      "morning": "BunÄƒ dimineaÈ›a",
-      "afternoon": "BunÄƒ ziua",
-      "evening": "BunÄƒ seara"
+      "morning": "Bună dimineața",
+      "afternoon": "Bună ziua",
+      "evening": "Bună seara"
     },
     "home": {
-      "greetingWithName": "Cum te pot ajuta azi, Dr. {{name}}?",
-      "greeting": "Cum te pot ajuta azi?",
-      "desc1Before": "Sunt asistentul tÄƒu",
-      "desc1Bold": "AI stomatologic privat È™i personal",
+      "greetingWithName": "Dr. {{name}}, introduceți numele pacientului pentru a începe.",
+      "greeting": "Introduceți numele pacientului pentru a începe.",
+      "desc1Before": "Cavio este",
+      "desc1Bold": "asistentul tău pentru radiografii dentare",
       "desc1After": ".",
-      "desc2Before": "ÃŽncarcÄƒ o radiografie dentarÄƒ È™i obÈ›ine",
-      "desc2Bold": "detectare instantÄƒ a cariilor",
-      "desc2After": "cu scoruri de Ã®ncredere È™i constatÄƒri pe dinÈ›i.",
-      "desc3": "Cu ce te pot ajuta azi?",
+      "desc2Before": "Încarcă o radiografie dentară pentru",
+      "desc2Bold": "detectarea cariilor",
+      "desc2After": "cu scoruri de încredere și constatări pe dinți.",
+      "desc3": "Introdu numele pacientului, apoi atașează o radiografie.",
       "inputPlaceholder": "Numele pacientului",
-      "attachPlaceholder": "Atașează o radiografie pentru a continua…",
-      "askRadiograph": "Te rog atașează o radiografie pentru {{name}} - panoramică sau bitewing.",
+      "attachPlaceholder": "Atașează o radiografie pentru a continua...",
+      "askRadiograph": "Atașează o radiografie pentru {{name}}, panoramică sau bitewing.",
       "attach": "Atașează",
       "replace": "Înlocuiește",
       "getStarted": "Începe",
-      "hipaa": "ConformÄƒ HIPAA Â· PrivatÄƒ"
+      "hipaa": "Conform HIPAA. Privat."
     },
-    "newScan": "AnalizÄƒ nouÄƒ",
-    "unnamedPatient": "Pacient fÄƒrÄƒ nume",
+    "newScan": "Analiză nouă",
+    "unnamedPatient": "Pacient fără nume",
     "finding": "constatare",
-    "findings": "constatÄƒri",
-    "savedImageUnavailable": "Imaginea salvatÄƒ nu este disponibilÄƒ.",
-    "startNewScan": "AnalizÄƒ nouÄƒ",
-    "scanAnalysis": "AnalizÄƒ radiografie",
-    "analyzeXray": "AnalizeazÄƒ radiografie",
-    "patientNameOptional": "Numele pacientului (opÈ›ional)",
-    "analyze": "AnalizeazÄƒ",
-    "analyzeAgain": "AnalizeazÄƒ din nou",
-    "confidenceThreshold": "Prag de Ã®ncredere",
+    "findings": "constatări",
+    "savedImageUnavailable": "Imaginea salvată nu este disponibilă.",
+    "startNewScan": "Analiză nouă",
+    "scanAnalysis": "Analiză radiografie",
+    "analyzeXray": "Analizează radiografie",
+    "patientNameOptional": "Numele pacientului (opțional)",
+    "analyze": "Analizează",
+    "analyzeAgain": "Analizează din nou",
+    "confidenceThreshold": "Prag de încredere",
     "tooth": "Dinte",
     "toothAssignment": "Alocare dinte",
-    "downloadImage": "DescarcÄƒ imaginea",
+    "downloadImage": "Descarcă imaginea",
     "modelsTitle": "Modele",
-    "aiDisclaimer": "Suport AI â€” nu Ã®nlocuieÈ™te diagnosticul clinic",
+    "thinking": "Se lucrează",
+    "analyzing": "Se analizează scanarea",
+    "aiDisclaimer": "Suport AI. Nu înlocuiește diagnosticul clinic.",
     "loading": {
-      "analyzing": "Se analizeazÄƒ radiografia...",
-      "detecting": "Se detecteazÄƒ tiparele de carii...",
-      "mapping": "Se mapeazÄƒ structurile dentare...",
-      "almost": "Aproape gata..."
+      "analyzing": "Se analizează radiografia...",
+      "detecting": "Se detectează cariile...",
+      "mapping": "Se localizează dinții...",
+      "almost": "Se finalizează..."
     },
     "errors": {
-      "noModels": "Nu s-au putut Ã®ncÄƒrca modelele. VerificaÈ›i URL-ul backend/setÄƒrile CORS.",
-      "noSavedScans": "Nu s-au gÄƒsit analize salvate pentru acest pacient.",
-      "imageNotAvailable": "Imaginea analizei salvate nu mai este disponibilÄƒ (404). VÄƒ rugÄƒm sÄƒ reanaliza imaginea.",
-      "noImageUrl": "Analiza salvatÄƒ nu are URL de imagine.",
-      "couldNotLoad": "Nu s-a putut Ã®ncÄƒrca analiza pacientului.",
-      "analysisFailed": "Analiza a eÈ™uat",
-      "saveFailed": "Analiza finalizatÄƒ, dar salvarea Ã®n Firestore a eÈ™uat"
+      "noModels": "Nu s-au putut încărca modelele. Verificați URL-ul backend și setările CORS.",
+      "noSavedScans": "Nu s-au găsit analize salvate pentru acest pacient.",
+      "imageNotAvailable": "Imaginea analizei salvate nu mai este disponibilă (404). Reanalizați imaginea.",
+      "noImageUrl": "Analiza salvată nu are URL de imagine.",
+      "couldNotLoad": "Nu s-a putut încărca analiza pacientului.",
+      "analysisFailed": "Analiza a eșuat",
+      "saveFailed": "Analiza s-a terminat, dar nu a putut fi salvată.",
+      "fileTooLarge": "Fișierul este prea mare (max 50 MB).",
+      "fileEmpty": "Fișierul este gol.",
+      "invalidResponse": "Răspuns invalid de la server.",
+      "authRequired": "Conectați-vă pentru a rula o analiză.",
+      "noCredits": "Nu mai sunt credite. Cumpărați un pachet din Setări.",
+      "rateLimited": "Prea multe cereri. Așteptați un moment și încercați din nou.",
+      "invalidImage": "Nu s-a putut procesa fișierul. Încărcați o radiografie dentară validă.",
+      "network": "Eroare de rețea. Verificați conexiunea și încercați din nou.",
+      "invalidFileType": "Încărcați un fișier imagine valid (JPG, PNG, BMP, TIFF).",
+      "unreadableImage": "Acest fișier nu a putut fi citit ca imagine.",
+      "scanFinishFailed": "Cavio nu a putut finaliza această analiză."
+    },
+    "paywall": {
+      "title": "Nu mai aveți credite",
+      "description": "Cumpărați un pachet de credite pentru a continua. Un credit per scanare OPG carii."
     },
     "modality": {
       "panoramic": "Panoramic",
       "bitewing": "Bitewing",
-      "savedScan": "AnalizÄƒ salvatÄƒ"
+      "savedScan": "Analiză salvată"
     }
   },
   "history": {
     "title": "Analizele Tale",
-    "subtitle": "Toate analizele tale anterioare È™i Ã®n curs",
+    "subtitle": "Toate analizele tale anterioare și în curs",
     "subtitlePatient": "Analize pentru",
-    "startNewScan": "ÃŽncepe o analizÄƒ nouÄƒ...",
-    "disclaimer": "Cavio este un asistent AI, nu un practician autorizat, È™i nu oferÄƒ sfaturi, diagnostic sau tratament medical.",
+    "startNewScan": "Începe o analiză nouă...",
+    "disclaimer": "Cavio este un asistent AI, nu un practician autorizat, și nu oferă sfaturi, diagnostic sau tratament medical.",
     "previous": "Anterioare",
     "noScans": {
-      "title": "Nu existÄƒ analize",
-      "subtitle": "Istoricul analizelor tale va apÄƒrea aici."
+      "title": "Nu există analize",
+      "subtitle": "Istoricul analizelor tale va apărea aici."
     },
     "menu": {
       "open": "Deschide",
-      "delete": "È˜terge"
+      "delete": "Șterge"
     },
     "delete": {
-      "title": "È˜tergi aceastÄƒ analizÄƒ?",
-      "message": "Aceasta va elimina permanent analiza din Ã®nregistrÄƒrile tale. AceastÄƒ acÈ›iune nu poate fi anulatÄƒ.",
-      "confirm": "È˜terge analiza",
-      "deleting": "Se È™terge...",
+      "title": "Ștergi această analiză?",
+      "message": "Aceasta va elimina permanent analiza din înregistrările tale. Această acțiune nu poate fi anulată.",
+      "confirm": "Șterge analiza",
+      "deleting": "Se șterge...",
       "cancel": "Anulare"
     },
     "toast": {
-      "deleted": "Analiza a fost È™tearsÄƒ cu succes."
+      "deleted": "Analiza a fost ștearsă cu succes."
     },
     "timeAgo": {
       "justNow": "chiar acum",
@@ -243,43 +260,43 @@
       "hAgo": "acum {{n}}h",
       "dAgo": "acum {{n}}z",
       "wAgo": "acum {{n}}s",
-      "monthAgo": "acum {{n}} lunÄƒ",
+      "monthAgo": "acum {{n}} lună",
       "monthsAgo": "acum {{n}} luni",
       "yAgo": "acum {{n}}a"
     }
   },
   "privacy": {
-    "title": "PoliticÄƒ de ConfidenÈ›ialitate",
+    "title": "Politică de Confidențialitate",
     "s1h": "1. Date colectate",
-    "s1p": "ColectÄƒm urmÄƒtoarele date: nume, adresÄƒ de email, informaÈ›ii despre organizaÈ›ie È™i date despre radiografiile Ã®ncÄƒrcate pentru analizÄƒ. Aceste date sunt necesare pentru furnizarea serviciului.",
+    "s1p": "Colectăm următoarele date: nume, adresă de email, informații despre organizație și date despre radiografiile încărcate pentru analiză. Aceste date sunt necesare pentru furnizarea serviciului.",
     "s2h": "2. Utilizarea datelor",
-    "s2p": "Datele tale sunt utilizate exclusiv pentru furnizarea È™i Ã®mbunÄƒtÄƒÈ›irea serviciilor Cavio. Nu vindem sau partajÄƒm datele personale cu terÈ›i fÄƒrÄƒ consimÈ›ÄƒmÃ¢ntul tÄƒu explicit.",
+    "s2p": "Datele tale sunt utilizate exclusiv pentru furnizarea și îmbunătățirea serviciilor Cavio. Nu vindem sau partajăm datele personale cu terți fără consimțământul tău explicit.",
     "s3h": "3. Stocarea datelor",
-    "s3p": "Datele sunt stocate Ã®n siguranÈ›Äƒ pe serverele Firebase (Google Cloud). Fiecare utilizator poate accesa doar propriile date. ImplementÄƒm mÄƒsuri de securitate adecvate pentru protejarea informaÈ›iilor.",
+    "s3p": "Datele sunt stocate în siguranță pe serverele Firebase (Google Cloud). Fiecare utilizator poate accesa doar propriile date. Implementăm măsuri de securitate adecvate pentru protejarea informațiilor.",
     "s4h": "4. Datele pacientului",
-    "s4p": "Radiografiile È™i datele pacienÈ›ilor sunt stocate Ã®n siguranÈ›Äƒ È™i sunt accesibile numai utilizatorului care le-a Ã®ncÄƒrcat. Nu utilizÄƒm datele pacienÈ›ilor pentru antrenarea modelelor AI fÄƒrÄƒ consimÈ›ÄƒmÃ¢nt explicit.",
+    "s4p": "Radiografiile și datele pacienților sunt stocate în siguranță și sunt accesibile numai utilizatorului care le-a încărcat. Nu utilizăm datele pacienților pentru antrenarea modelelor AI fără consimțământ explicit.",
     "s5h": "5. Drepturile utilizatorului",
-    "s5p": "Ai dreptul de a accesa, modifica sau È™terge datele tale personale Ã®n orice moment. Pentru cereri privind datele personale, contacteazÄƒ-ne la adresa de email de suport.",
+    "s5p": "Ai dreptul de a accesa, modifica sau șterge datele tale personale în orice moment. Pentru cereri privind datele personale, contactează-ne la adresa de email de suport.",
     "s6h": "6. Cookie-uri",
-    "s6p": "Platforma utilizeazÄƒ cookie-uri esenÈ›iale pentru autentificare È™i funcÈ›ionare corectÄƒ. Nu utilizÄƒm cookie-uri de urmÄƒrire sau publicitate.",
+    "s6p": "Platforma utilizează cookie-uri esențiale pentru autentificare și funcționare corectă. Nu utilizăm cookie-uri de urmărire sau publicitate.",
     "s7h": "7. Contact",
-    "s7p": "Pentru orice Ã®ntrebÄƒri privind aceastÄƒ politicÄƒ de confidenÈ›ialitate sau datele tale, nu ezita sÄƒ ne contactezi."
+    "s7p": "Pentru orice întrebări privind această politică de confidențialitate sau datele tale, nu ezita să ne contactezi."
   },
   "terms": {
-    "title": "Termeni È™i CondiÈ›ii",
+    "title": "Termeni și Condiții",
     "s1h": "1. Acceptarea termenilor",
-    "s1p": "Prin utilizarea platformei Cavio, acceptaÈ›i Ã®n totalitate aceÈ™ti termeni È™i condiÈ›ii. DacÄƒ nu sunteÈ›i de acord cu oricare dintre prevederi, vÄƒ rugÄƒm sÄƒ nu utilizaÈ›i platforma.",
+    "s1p": "Prin utilizarea platformei Cavio, acceptați în totalitate acești termeni și condiții. Dacă nu sunteți de acord cu oricare dintre prevederi, vă rugăm să nu utilizați platforma.",
     "s2h": "2. Descrierea serviciului",
-    "s2p": "Cavio este un instrument de suport bazat pe AI, conceput pentru a ajuta profesioniÈ™tii stomatologici Ã®n analiza radiografiilor dentare. Platforma nu Ã®nlocuieÈ™te diagnosticul clinic profesional.",
-    "s3h": "3. Utilizarea corectÄƒ",
-    "s3p": "Rezultatele furnizate de platformÄƒ sunt indicative È™i trebuie validate de un profesionist calificat. Utilizatorul este responsabil pentru toate deciziile clinice bazate pe informaÈ›iile furnizate.",
+    "s2p": "Cavio este un instrument de suport bazat pe AI, conceput pentru a ajuta profesioniștii stomatologici în analiza radiografiilor dentare. Platforma nu înlocuiește diagnosticul clinic profesional.",
+    "s3h": "3. Utilizarea corectă",
+    "s3p": "Rezultatele furnizate de platformă sunt indicative și trebuie validate de un profesionist calificat. Utilizatorul este responsabil pentru toate deciziile clinice bazate pe informațiile furnizate.",
     "s4h": "4. Contul de utilizator",
-    "s4p": "EÈ™ti responsabil pentru menÈ›inerea confidenÈ›ialitÄƒÈ›ii contului È™i parolei tale. Orice activitate efectuatÄƒ prin contul tÄƒu este responsabilitatea ta.",
-    "s5h": "5. Perioada de probÄƒ",
-    "s5p": "Utilizatorii noi beneficiazÄƒ de o perioadÄƒ de probÄƒ gratuitÄƒ de 7 zile. DupÄƒ perioada de probÄƒ, accesul la funcÈ›iile premium poate fi restricÈ›ionat.",
-    "s6h": "6. Limitarea rÄƒspunderii",
-    "s6p": "Cavio nu este responsabil pentru deciziile clinice luate pe baza rezultatelor platformei. Serviciul este furnizat \"ca atare\", fÄƒrÄƒ garanÈ›ii de niciun fel.",
-    "s7h": "7. ModificÄƒri ale termenilor",
-    "s7p": "Ne rezervÄƒm dreptul de a modifica aceÈ™ti termeni Ã®n orice moment. Utilizatorii vor fi notificaÈ›i prin intermediul platformei cu privire la modificÄƒrile semnificative."
+    "s4p": "Ești responsabil pentru menținerea confidențialității contului și parolei tale. Orice activitate efectuată prin contul tău este responsabilitatea ta.",
+    "s5h": "5. Perioada de probă",
+    "s5p": "Utilizatorii noi beneficiază de o perioadă de probă gratuită de 7 zile. După perioada de probă, accesul la funcțiile premium poate fi restricționat.",
+    "s6h": "6. Limitarea răspunderii",
+    "s6p": "Cavio nu este responsabil pentru deciziile clinice luate pe baza rezultatelor platformei. Serviciul este furnizat \"ca atare\", fără garanții de niciun fel.",
+    "s7h": "7. Modificări ale termenilor",
+    "s7p": "Ne rezervăm dreptul de a modifica acești termeni în orice moment. Utilizatorii vor fi notificați prin intermediul platformei cu privire la modificările semnificative."
   }
 }

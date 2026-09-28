@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../components/button";
 import { Badge } from "../components/ui/badge";
 import { cn } from "../lib/utils";
+import { unslopText } from "../lib/unslop";
 import { toast } from "sonner";
 import {
   AnalyzingIndicator,
@@ -254,7 +255,7 @@ export default function AnalyzeScan() {
     // Validate MIME type
     const validTypes = ["image/jpeg", "image/png", "image/bmp", "image/tiff"];
     if (f.type && !validTypes.includes(f.type)) {
-      setError("Please upload a valid image file (JPG, PNG, BMP, TIFF).");
+      setError(t("analyze.errors.invalidFileType", { defaultValue: "Upload a valid image file (JPG, PNG, BMP, TIFF)." }));
       return;
     }
     // Validate the browser can render the image
@@ -269,7 +270,7 @@ export default function AnalyzeScan() {
     };
     img.onerror = () => {
       URL.revokeObjectURL(testUrl);
-      setError("This file could not be read as an image.");
+      setError(t("analyze.errors.unreadableImage", { defaultValue: "This file could not be read as an image." }));
     };
     img.src = testUrl;
   }, []);
@@ -383,11 +384,11 @@ export default function AnalyzeScan() {
       } else if (msg.includes("Could not decode image")) {
         setError(t("analyze.errors.invalidImage", { defaultValue: "Could not process this file. Please upload a valid dental X-ray." }));
       } else if (msg.includes("timed out") || msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
-        setError(t("analyze.errors.network", { defaultValue: "Network error â€” check your connection and try again." }));
+        setError(t("analyze.errors.network", { defaultValue: "Network error. Check your connection and try again." }));
       } else {
-        setError(msg || t("analyze.errors.analysisFailed"));
+        setError(unslopText(msg || t("analyze.errors.analysisFailed")));
       }
-      toast.error(msg || t("analyze.errors.analysisFailed"), { description: "Cavio could not finish this scan." });
+      toast.error(unslopText(msg || t("analyze.errors.analysisFailed")), { description: t("analyze.errors.scanFinishFailed", { defaultValue: "Cavio could not finish this scan." }) });
     } finally {
       setLoading(false);
     }
@@ -405,13 +406,13 @@ export default function AnalyzeScan() {
       onOpenChange={setPaywallOpen}
       credits={paywallCredits}
       loadingCredits={paywallCreditsLoading}
-      title="You are out of credits"
-      description="Buy a credit pack to continue scanning. One credit per OPG caries scan."
+      title={t("analyze.paywall.title", { defaultValue: "You are out of credits" })}
+      description={t("analyze.paywall.description", { defaultValue: "Buy a credit pack to continue scanning. One credit per OPG caries scan." })}
     />
   );
 
 
-  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€ WELCOME STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --------- WELCOME STATE --------- */
   if (isWelcome) {
     return (
       <>
@@ -489,7 +490,7 @@ export default function AnalyzeScan() {
 
         {!hasConversation ? (
         <>
-        {/* Avatar cluster â€” Quinn logo + two dental professional avatars */}
+        {/* Avatar cluster - Quinn logo + two dental professional avatars */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -501,7 +502,7 @@ export default function AnalyzeScan() {
             marginBottom: 28,
           }}
         >
-          {/* Quinn logo avatar â€” on the left */}
+          {/* Quinn logo avatar - on the left */}
           <div style={{
             width: 44,
             height: 44,
@@ -573,7 +574,7 @@ export default function AnalyzeScan() {
             : t("analyze.home.greeting")}
         </motion.h1>
 
-        {/* Description â€” only shown to non-logged-in users */}
+        {/* Description - only shown to non-logged-in users */}
         {!user && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -610,7 +611,7 @@ export default function AnalyzeScan() {
             {nameReplyPending ? (
               <ChatAssistantBlock>
                 <ThinkingIndicator
-                  label={t("analyze.thinking", { defaultValue: "Thinking" })}
+                  label={t("analyze.thinking", { defaultValue: "Working" })}
                   seconds={activitySeconds}
                 />
               </ChatAssistantBlock>
@@ -620,7 +621,7 @@ export default function AnalyzeScan() {
                   {t("analyze.home.askRadiograph", {
                     name: patientName.trim(),
                     defaultValue:
-                      "Please attach a radiograph for {{name}} - panoramic or bitewing.",
+                      "Attach a radiograph for {{name}}, panoramic or bitewing.",
                   })}
                 </p>
               </ChatAssistantBlock>
@@ -728,7 +729,7 @@ export default function AnalyzeScan() {
     );
   }
 
-  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€ LOADING / STREAMING STATE (Notra shimmer) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --------- LOADING / STREAMING STATE (Notra shimmer) --------- */
   if (loading && !result) {
     const loadingPatient = Boolean(new URLSearchParams(location.search).get("patient"));
     // Opening a past chat → mirror result chrome. Fresh analyze → stream under composer-shaped chrome.
@@ -769,7 +770,7 @@ export default function AnalyzeScan() {
     );
   }
 
-  /*  ───────── RESULT VIEW (saved or fresh scan) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /*  ───────── RESULT VIEW (saved or fresh scan) --------- */
   if (result) {
     const savedSuspicionColor = {
       low: { bg: "var(--color-low-bg)", text: "var(--color-low)" },
@@ -916,6 +917,6 @@ export default function AnalyzeScan() {
     );
   }
 
-  /* No more active state â€” all results use the unified result view above */
+  /* No more active state - all results use the unified result view above */
   return null;
 }

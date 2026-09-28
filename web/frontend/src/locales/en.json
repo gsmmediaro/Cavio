@@ -1,7 +1,7 @@
 {
   "auth": {
     "login": {
-      "title": "Access Your Private AI Dental Assistant",
+      "title": "Sign in to Cavio",
       "subtitle": "Log in or create a new account",
       "emailBtn": "Log in with email",
       "googleBtn": "Continue with Google",
@@ -9,7 +9,7 @@
       "createAccount": "Create an account"
     },
     "register": {
-      "title": "Your Free AI-Powered Dental Analysis",
+      "title": "Create your Cavio account",
       "subtitle": "Choose a sign up option below",
       "emailBtn": "Sign up with email",
       "googleBtn": "Sign up with Google",
@@ -157,22 +157,22 @@
       "evening": "Good evening"
     },
     "home": {
-      "greetingWithName": "How can I help you today, Dr. {{name}}?",
-      "greeting": "How can I help you today?",
-      "desc1Before": "I'm your",
-      "desc1Bold": "private and personal AI dental assistant",
+      "greetingWithName": "Dr. {{name}}, enter a patient name to begin.",
+      "greeting": "Enter a patient name to begin.",
+      "desc1Before": "Cavio is your",
+      "desc1Bold": "dental radiograph assistant",
       "desc1After": ".",
-      "desc2Before": "Upload a dental X-ray and get",
-      "desc2Bold": "instant caries detection",
+      "desc2Before": "Upload a dental X-ray for",
+      "desc2Bold": "caries detection",
       "desc2After": "with confidence scores and tooth-level findings.",
-      "desc3": "What can I help you with today?",
+      "desc3": "Enter a patient name, then attach a radiograph.",
       "inputPlaceholder": "Patient name",
-      "attachPlaceholder": "Attach a radiograph to continue…",
-      "askRadiograph": "Please attach a radiograph for {{name}} - panoramic or bitewing.",
+      "attachPlaceholder": "Attach a radiograph to continue...",
+      "askRadiograph": "Attach a radiograph for {{name}}, panoramic or bitewing.",
       "attach": "Attach",
       "replace": "Replace",
-      "getStarted": "Get Started",
-      "hipaa": "HIPAA Compliant Â· Private"
+      "getStarted": "Get started",
+      "hipaa": "HIPAA compliant. Private."
     },
     "newScan": "New scan",
     "unnamedPatient": "Unnamed patient",
@@ -180,7 +180,7 @@
     "findings": "findings",
     "savedImageUnavailable": "Saved image is unavailable.",
     "startNewScan": "Start new scan",
-    "scanAnalysis": "Scan Analysis",
+    "scanAnalysis": "Scan analysis",
     "analyzeXray": "Analyze X-ray",
     "patientNameOptional": "Patient name (optional)",
     "analyze": "Analyze",
@@ -190,21 +190,38 @@
     "toothAssignment": "Tooth assignment",
     "downloadImage": "Download image",
     "modelsTitle": "Models",
-    "aiDisclaimer": "AI decision support â€” does not replace clinical diagnosis",
+    "thinking": "Working",
+    "analyzing": "Analyzing scan",
+    "aiDisclaimer": "AI decision support. Does not replace clinical diagnosis.",
     "loading": {
       "analyzing": "Analyzing radiograph...",
-      "detecting": "Detecting caries patterns...",
-      "mapping": "Mapping dental structures...",
-      "almost": "Almost there..."
+      "detecting": "Detecting caries...",
+      "mapping": "Locating teeth...",
+      "almost": "Finishing..."
     },
     "errors": {
-      "noModels": "Could not load models. Check backend URL/CORS settings.",
+      "noModels": "Could not load models. Check the backend URL and CORS settings.",
       "noSavedScans": "No saved scans found for this patient.",
-      "imageNotAvailable": "Saved scan image is no longer available (404). Please re-analyze the image.",
+      "imageNotAvailable": "Saved scan image is no longer available (404). Re-analyze the image.",
       "noImageUrl": "Saved scan has no image URL.",
       "couldNotLoad": "Could not load patient scan.",
       "analysisFailed": "Analysis failed",
-      "saveFailed": "Scan analyzed, but failed to save in Firestore"
+      "saveFailed": "Scan finished, but could not be saved.",
+      "fileTooLarge": "File is too large (max 50 MB).",
+      "fileEmpty": "File is empty.",
+      "invalidResponse": "Invalid response from server.",
+      "authRequired": "Sign in to run a scan.",
+      "noCredits": "No credits left. Buy a credit pack in Settings.",
+      "rateLimited": "Too many requests. Wait a moment and try again.",
+      "invalidImage": "Could not process this file. Upload a valid dental X-ray.",
+      "network": "Network error. Check your connection and try again.",
+      "invalidFileType": "Upload a valid image file (JPG, PNG, BMP, TIFF).",
+      "unreadableImage": "This file could not be read as an image.",
+      "scanFinishFailed": "Cavio could not finish this scan."
+    },
+    "paywall": {
+      "title": "You are out of credits",
+      "description": "Buy a credit pack to continue scanning. One credit per OPG caries scan."
     },
     "modality": {
       "panoramic": "Panoramic",

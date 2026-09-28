@@ -20,6 +20,7 @@ from web.backend.services import credits as credits_service
 from web.backend.services import inference
 from web.backend.upload_validation import read_and_validate_upload
 from web.backend.services.result_urls import append_result_signature
+from web.backend.services.unslop import unslop_text
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def _resolve_allowed_model(model_path: str) -> str:
         return model_path
     candidate = str(Path(model_path).resolve())
     if candidate not in allowed:
-        raise HTTPException(status_code=400, detail='Invalid model_path')
+        raise HTTPException(status_code=400, detail=unslop_text('Invalid model_path'))
     return candidate
 
 
@@ -54,17 +55,17 @@ async def analyze(
     limiter.check(rate_key)
 
     if settings.auth_required and user is None:
-        raise HTTPException(status_code=401, detail='Authentication required')
+        raise HTTPException(status_code=401, detail=unslop_text('Authentication required'))
 
     if not 0.01 <= float(conf_threshold) <= 1.0:
-        raise HTTPException(status_code=400, detail='conf_threshold out of range')
+        raise HTTPException(status_code=400, detail=unslop_text('conf_threshold out of range'))
 
     if user is not None and settings.scan_credit_cost > 0:
         balance = credits_service.get_balance(user.uid)
         if balance < settings.scan_credit_cost:
             raise HTTPException(
                 status_code=402,
-                detail='Insufficient credits. Purchase a credit pack to continue.',
+                detail=unslop_text('Insufficient credits. Purchase a credit pack to continue.'),
             )
 
     start = time.time()
@@ -73,7 +74,7 @@ async def analyze(
     image = cv2.imdecode(np_buf, cv2.IMREAD_COLOR)
 
     if image is None:
-        raise HTTPException(status_code=400, detail='Could not decode image')
+        raise HTTPException(status_code=400, detail=unslop_text('Could not decode image'))
 
     model_path = _resolve_allowed_model(model_path)
 
@@ -81,7 +82,7 @@ async def analyze(
         h, w = image.shape[:2]
         auto_model_path = inference.pick_model_for_image(h, w)
         if auto_model_path is None:
-            raise HTTPException(status_code=400, detail='No trained models found')
+            raise HTTPException(status_code=400, detail=unslop_text('No trained models found'))
         model_path = auto_model_path
         logger.info('Auto-selected model: %s', Path(model_path).parent.parent.name)
 
@@ -94,7 +95,7 @@ async def analyze(
         except ValueError:
             raise HTTPException(
                 status_code=402,
-                detail='Insufficient credits. Purchase a credit pack to continue.',
+                detail=unslop_text('Insufficient credits. Purchase a credit pack to continue.'),
             ) from None
 
     result = inference.run_analysis(

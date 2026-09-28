@@ -26,6 +26,7 @@ from web.backend.plans import (
     paid_plan_ids,
 )
 from web.backend.services import credits as credits_service
+from web.backend.services.unslop import unslop_text
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["billing"])
@@ -157,22 +158,22 @@ async def create_checkout(
     if plan_id not in paid_plan_ids():
         raise HTTPException(
             status_code=400,
-            detail=f"Unknown plan_id. Use one of: {', '.join(sorted(paid_plan_ids()))}",
+            detail=unslop_text(f"Unknown plan_id. Use one of: {', '.join(sorted(paid_plan_ids()))}"),
         )
     if interval not in VALID_INTERVALS:
-        raise HTTPException(status_code=400, detail="interval must be month or year")
+        raise HTTPException(status_code=400, detail=unslop_text("interval must be month or year"))
     plan = get_plan(plan_id)
     assert plan is not None
 
     if not settings.stripe_secret_key:
         raise HTTPException(
             status_code=503,
-            detail="Stripe is not configured. Set STRIPE_SECRET_KEY (test mode).",
+            detail=unslop_text("Stripe is not configured. Set STRIPE_SECRET_KEY (test mode)."),
         )
     if not settings.stripe_secret_key.startswith("sk_test_"):
         raise HTTPException(
             status_code=503,
-            detail="Refusing non-test Stripe key. Use sk_test_... only.",
+            detail=unslop_text("Refusing non-test Stripe key. Use sk_test_... only."),
         )
 
     stripe.api_key = settings.stripe_secret_key
@@ -237,10 +238,10 @@ async def create_checkout(
         logger.exception(
             "Stripe subscription checkout failed plan=%s interval=%s", plan_id, interval
         )
-        raise HTTPException(status_code=502, detail="Stripe checkout failed") from exc
+        raise HTTPException(status_code=502, detail=unslop_text("Stripe checkout failed")) from exc
 
     if not session.url:
-        raise HTTPException(status_code=502, detail="Stripe returned no checkout URL")
+        raise HTTPException(status_code=502, detail=unslop_text("Stripe returned no checkout URL"))
     return CheckoutResponse(
         checkout_url=session.url,
         session_id=session.id,
@@ -396,7 +397,7 @@ def _handle_subscription_event(sub: dict, status_override: Optional[str] = None)
 async def stripe_webhook(request: Request):
     settings = get_settings()
     if not settings.stripe_secret_key or not settings.stripe_webhook_secret:
-        raise HTTPException(status_code=503, detail="Stripe webhook not configured")
+        raise HTTPException(status_code=503, detail=unslop_text("Stripe webhook not configured"))
 
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
@@ -406,9 +407,9 @@ async def stripe_webhook(request: Request):
             payload, sig, settings.stripe_webhook_secret
         )
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Invalid payload") from exc
+        raise HTTPException(status_code=400, detail=unslop_text("Invalid payload")) from exc
     except stripe.error.SignatureVerificationError as exc:
-        raise HTTPException(status_code=400, detail="Invalid signature") from exc
+        raise HTTPException(status_code=400, detail=unslop_text("Invalid signature")) from exc
 
     event_id = event["id"]
     if not credits_service.mark_stripe_event_processed(event_id):
@@ -428,6 +429,6 @@ async def stripe_webhook(request: Request):
             _handle_subscription_event(obj, status_override="canceled")
     except Exception:
         logger.exception("Webhook handler failed type=%s", etype)
-        raise HTTPException(status_code=500, detail="Webhook handler failed")
+        raise HTTPException(status_code=500, detail=unslop_text("Webhook handler failed"))
 
     return {"ok": True}
