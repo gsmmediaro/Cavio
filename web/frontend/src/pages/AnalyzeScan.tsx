@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Upload, Pencil, ArrowLeft, Download } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -84,6 +84,7 @@ export default function AnalyzeScan() {
   const [toothAssign, setToothAssign] = useState(false);
   const [modality, setModality] = useState<"Panoramic" | "Bitewing">("Panoramic");
   const [patientName, setPatientName] = useState("");
+  const [nameSubmitted, setNameSubmitted] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [savedScanId, setSavedScanId] = useState<string | null>(null);
@@ -160,6 +161,7 @@ export default function AnalyzeScan() {
     setResult(null);
     setError("");
     setPatientName("");
+    setNameSubmitted(false);
     setLoading(false);
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -198,6 +200,7 @@ export default function AnalyzeScan() {
         }
 
         setPatientName(patient);
+        setNameSubmitted(true);
         setFile(null);
         setPreview(null);
         setResult(saved_result);
@@ -558,6 +561,29 @@ export default function AnalyzeScan() {
           </motion.div>
         )}
 
+        {/* Scripted chat: name committed → ask for radiograph (Notra agent elements) */}
+        {nameSubmitted && patientName.trim() ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="mb-6 flex w-full max-w-[680px] flex-col gap-4"
+          >
+            <ChatUserBubble>
+              <div className="font-medium">{patientName.trim()}</div>
+            </ChatUserBubble>
+            <ChatAssistantBlock>
+              <p>
+                {t("analyze.home.askRadiograph", {
+                  name: patientName.trim(),
+                  defaultValue:
+                    "Please attach a radiograph for {{name}} — panoramic or bitewing.",
+                })}
+              </p>
+            </ChatAssistantBlock>
+          </motion.div>
+        ) : null}
+
         {/* Notra Studio agent chat composer (exact Frame/Toolbar/Send CTA) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -567,24 +593,51 @@ export default function AnalyzeScan() {
         >
           <AnalyzeComposer
             patientName={patientName}
-            onPatientNameChange={setPatientName}
-            placeholder={t("analyze.home.inputPlaceholder")}
+            onPatientNameChange={(value) => {
+              setPatientName(value);
+              if (!value.trim()) setNameSubmitted(false);
+            }}
+            nameSubmitted={nameSubmitted}
+            onSubmitName={() => {
+              if (!patientName.trim()) return;
+              setNameSubmitted(true);
+            }}
+            placeholder={
+              nameSubmitted
+                ? t("analyze.home.attachPlaceholder", {
+                    defaultValue: "Attach a radiograph to continue…",
+                  })
+                : t("analyze.home.inputPlaceholder")
+            }
             modality={modality}
             onModalityChange={setModality}
             file={file}
             preview={preview}
             onClearFile={clearFile}
-            onPickFile={() => inputRef.current?.click()}
-            onFileDrop={(f) => handleFile(f)}
+            onPickFile={() => {
+              if (!patientName.trim()) return;
+              if (!nameSubmitted) setNameSubmitted(true);
+              inputRef.current?.click();
+            }}
+            onFileDrop={(f) => {
+              if (!patientName.trim()) return;
+              if (!nameSubmitted) setNameSubmitted(true);
+              handleFile(f);
+            }}
             onAnalyze={() => { void handleAnalyze(); }}
             loading={loading}
-            attachLabel="Attach"
-            replaceLabel="Replace"
+            attachLabel={t("analyze.home.attach", { defaultValue: "Attach" })}
+            replaceLabel={t("analyze.home.replace", { defaultValue: "Replace" })}
             sendLabel={t("analyze.analyze")}
             getStartedLabel={t("analyze.home.getStarted")}
             accept={ACCEPT}
             fileInputRef={inputRef}
-            onFileInputChange={(f) => { if (f) handleFile(f); }}
+            onFileInputChange={(f) => {
+              if (!f) return;
+              if (!patientName.trim()) return;
+              if (!nameSubmitted) setNameSubmitted(true);
+              handleFile(f);
+            }}
             dragOver={dragOver}
             onDragOverChange={setDragOver}
             focused={inputFocused}

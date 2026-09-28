@@ -1,6 +1,11 @@
-﻿/**
+/**
  * Cavio Analyze composer — structure matches Notra Studio agent chat composer
  * (Composer.Frame → input area → Composer.Toolbar → Attach + controls + Send).
+ *
+ * Scripted first-run flow:
+ * 1) Patient name only — attach disabled until name is non-empty
+ * 2) After name submitted → parent shows chat ask-for-radiograph; attach enabled
+ * 3) Attach radiograph (Notra chip / paperclip UX) → analyze
  */
 import { type DragEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useEffect } from "react";
 import { ArrowUp02Icon } from "@hugeicons/core-free-icons";
@@ -14,6 +19,10 @@ import { cn } from "@/lib/utils";
 export type AnalyzeComposerProps = {
   patientName: string;
   onPatientNameChange: (value: string) => void;
+  /** True after the user commits a non-empty patient name (Enter / Send). */
+  nameSubmitted?: boolean;
+  /** Called when user commits the patient name (no file yet). */
+  onSubmitName?: () => void;
   placeholder: string;
   modality: "Panoramic" | "Bitewing";
   onModalityChange: (value: "Panoramic" | "Bitewing") => void;
@@ -42,6 +51,8 @@ export type AnalyzeComposerProps = {
 export function AnalyzeComposer({
   patientName,
   onPatientNameChange,
+  nameSubmitted = false,
+  onSubmitName,
   placeholder,
   modality,
   onModalityChange,
@@ -68,7 +79,12 @@ export function AnalyzeComposer({
 }: AnalyzeComposerProps) {
   const patientFieldId = "cavio-analyze-patient";
   const fileInputId = "cavio-analyze-file";
+  const hasName = Boolean(patientName.trim());
+  const canAttach = hasName;
   const canSend = Boolean(file) && !loading;
+  /** Name step: Send commits name. Radiograph step: Send analyzes when file ready. */
+  const canCommitName = hasName && !file && !loading;
+  const showAttachAndModality = hasName;
   const focusPatient = () => {
     document.getElementById(patientFieldId)?.focus();
   };
@@ -92,6 +108,7 @@ export function AnalyzeComposer({
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!canAttach) return;
     onDragOverChange?.(true);
   };
   const handleDragLeave = (e: DragEvent) => {
@@ -105,17 +122,42 @@ export function AnalyzeComposer({
     e.preventDefault();
     e.stopPropagation();
     onDragOverChange?.(false);
+    if (!canAttach) return;
     const f = e.dataTransfer.files?.[0];
     if (f) onFileDrop(f);
+  };
+
+  const commitNameOrAnalyze = () => {
+    if (loading) return;
+    if (file) {
+      onAnalyze();
+      return;
+    }
+    if (hasName) {
+      onSubmitName?.();
+    }
   };
 
   const handleKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (file) onAnalyze();
-      else onPickFile();
+      commitNameOrAnalyze();
     }
   };
+
+  const sendDisabled = file ? !canSend : !canCommitName;
+  const sendLabelResolved = file
+    ? sendLabel
+    : nameSubmitted
+      ? attachLabel
+      : getStartedLabel;
+  const sendTooltip = file
+    ? "Enter to analyze."
+    : hasName
+      ? nameSubmitted
+        ? "Attach a panoramic or bitewing radiograph"
+        : "Enter to continue — then attach a radiograph"
+      : "Enter the patient name first";
 
   return (
     <div className={cn("w-full max-w-[680px]", className)}>
@@ -127,7 +169,12 @@ export function AnalyzeComposer({
         accept={accept}
         className="sr-only"
         tabIndex={-1}
+        disabled={!canAttach}
         onChange={(e) => {
+          if (!canAttach) {
+            e.currentTarget.value = "";
+            return;
+          }
           const f = e.target.files?.[0] ?? null;
           onFileInputChange(f);
           e.currentTarget.value = "";
@@ -145,7 +192,7 @@ export function AnalyzeComposer({
           className={cn(
             "relative",
             // after:pointer-events-none — decorative drag ring must NEVER block attach/tabs/send
-            dragOver
+            dragOver && canAttach
               ? "after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-[inherit] after:bg-primary/5 after:ring-2 after:ring-inset after:ring-primary/30"
               : null,
           )}
@@ -194,6 +241,7 @@ export function AnalyzeComposer({
                   onKeyDown={handleKeyDown}
                   className="h-auto min-h-12 w-full rounded-none border-0 bg-transparent px-3 py-2 text-sm leading-6 shadow-none focus-visible:ring-0 md:text-sm"
                   aria-label={placeholder}
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -201,51 +249,74 @@ export function AnalyzeComposer({
 
           {/* Toolbar above any decorative overlays */}
           <Composer.Toolbar className="relative z-20">
-            <Composer.ToolbarButton
-              aria-label={file ? replaceLabel : attachLabel}
-              className="relative z-20 size-7 justify-center px-0"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onPickFile();
-              }}
-              type="button"
-            >
-              <Paperclip className="pointer-events-none size-4" />
-            </Composer.ToolbarButton>
-
-            <Tabs
-              value={modality}
-              onValueChange={(v) => onModalityChange(v as "Panoramic" | "Bitewing")}
-              className="relative z-20"
-            >
-              <TabsList
-                variant="default"
-                className="h-7"
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
+            {showAttachAndModality ? (
+              <Composer.ToolbarButton
+                aria-label={file ? replaceLabel : attachLabel}
+                aria-disabled={!canAttach}
+                disabled={!canAttach}
+                className="relative z-20 size-7 justify-center px-0"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!canAttach) return;
+                  onPickFile();
+                }}
+                type="button"
+                title={canAttach ? attachLabel : "Enter patient name first"}
               >
-                <TabsTrigger value="Panoramic" className="px-2.5 text-xs">
-                  Panoramic
-                </TabsTrigger>
-                <TabsTrigger value="Bitewing" className="px-2.5 text-xs">
-                  Bitewing
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+                <Paperclip className="pointer-events-none size-4" />
+              </Composer.ToolbarButton>
+            ) : (
+              <Composer.ToolbarButton
+                aria-label={attachLabel}
+                aria-disabled="true"
+                disabled
+                className="relative z-20 size-7 justify-center px-0 opacity-40"
+                type="button"
+                title="Enter patient name first"
+              >
+                <Paperclip className="pointer-events-none size-4" />
+              </Composer.ToolbarButton>
+            )}
+
+            {showAttachAndModality ? (
+              <Tabs
+                value={modality}
+                onValueChange={(v) => onModalityChange(v as "Panoramic" | "Bitewing")}
+                className="relative z-20"
+              >
+                <TabsList
+                  variant="default"
+                  className="h-7"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <TabsTrigger value="Panoramic" className="px-2.5 text-xs">
+                    Panoramic
+                  </TabsTrigger>
+                  <TabsTrigger value="Bitewing" className="px-2.5 text-xs">
+                    Bitewing
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            ) : null}
 
             <Composer.Send
               busy={loading}
-              disabled={!canSend}
-              label={file ? sendLabel : getStartedLabel}
-              tooltip={
-                file
-                  ? "Enter to analyze. Attach a scan first if empty."
-                  : "Attach a panoramic or bitewing to analyze"
-              }
-              onClick={(e) => {
-                e?.stopPropagation?.();
-                if (file) onAnalyze();
+              disabled={sendDisabled}
+              label={sendLabelResolved}
+              tooltip={sendTooltip}
+              onClick={() => {
+                if (file) {
+                  onAnalyze();
+                  return;
+                }
+                if (!hasName) return;
+                if (!nameSubmitted) {
+                  onSubmitName?.();
+                  return;
+                }
+                onPickFile();
               }}
             >
               <HugeiconsIcon
