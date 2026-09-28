@@ -70,6 +70,53 @@ function ensure_https_url(url: string): string {
   return url;
 }
 
+
+function extract_result_filename(url: string): string {
+  if (!url) return "";
+  try {
+    const path = url.startsWith("http") ? new URL(url).pathname : url.split("?")[0];
+    const marker = "/static/results/";
+    const idx = path.indexOf(marker);
+    if (idx < 0) return "";
+    const name = path.slice(idx + marker.length).split("/")[0];
+    if (!name || !/\.(jpe?g|png|webp)$/i.test(name)) return "";
+    if (name.includes("..")) return "";
+    return name;
+  } catch {
+    return "";
+  }
+}
+
+export async function refreshResultImageUrl(filename: string): Promise<string> {
+  const headers = await authHeaders();
+  const res = await fetch(build_api_url("/api/results/" + encodeURIComponent(filename) + "/url"), {
+    headers,
+  });
+  if (!res.ok) {
+    throw new Error("Could not refresh result image (" + res.status + ")");
+  }
+  const data = await res.json();
+  return ensure_https_url(data.url || "");
+}
+
+async function persist_annotated_image(uid: string, annotatedUrl: string, filenameHint: string): Promise<string> {
+  if (!annotatedUrl) return "";
+  try {
+    const res = await with_timeout(fetch(annotatedUrl), 8000);
+    if (!res.ok) return "";
+    const blob = await with_timeout(res.blob(), 8000);
+    if (!blob || blob.size < 32) return "";
+    const safe_name = (filenameHint || "annotated.jpg").replace(/[^a-zA-Z0-9._-]/g, "_");
+    const storage_path = `users/${uid}/scans/${Date.now()}_annotated_${safe_name}`;
+    const image_ref = ref(storage, storage_path);
+    await with_timeout(uploadBytes(image_ref, blob), 12000);
+    return await with_timeout(getDownloadURL(image_ref), 4000);
+  } catch (error) {
+    console.error("Could not persist annotated image to Firebase Storage", error);
+    return "";
+  }
+}
+
 function timestamp_to_millis(value: unknown): number {
   if (value instanceof Timestamp) {
     return value.toMillis();
@@ -130,6 +177,7 @@ export interface ScanRecord {
   turnaround_s: number;
   image_url?: string;
   annotated_image_url?: string;
+  result_filename?: string;
 }
 
 export interface PatientSummary {
@@ -227,6 +275,7 @@ export async function saveScanToFirestore(
 ) {
   const clean_patient_name = normalize_patient_name(scan.patientName);
   let image_url = "";
+  const result_filename = extract_result_filename(scan.annotatedImageUrl || "");
 
   if (ENABLE_SOURCE_UPLOAD) {
     try {
@@ -240,6 +289,17 @@ export async function saveScanToFirestore(
     }
   }
 
+  // Prefer a durable Firebase URL over the short-lived HMAC result link.
+  let annotated_url = ensure_https_url(scan.annotatedImageUrl || "");
+  const durable = await persist_annotated_image(
+    uid,
+    annotated_url,
+    scan.filename || result_filename || "annotated.jpg",
+  );
+  if (durable) {
+    annotated_url = ensure_https_url(durable);
+  }
+
   const scansRef = collection(db, "users", uid, "scans");
   await addDoc(scansRef, {
     timestamp: serverTimestamp(),
@@ -251,7 +311,8 @@ export async function saveScanToFirestore(
     modality: scan.modality,
     turnaroundS: scan.turnaroundS,
     imageUrl: ensure_https_url(image_url),
-    annotatedImageUrl: ensure_https_url(scan.annotatedImageUrl || ""),
+    annotatedImageUrl: annotated_url,
+    resultFilename: result_filename,
   });
 
   const patRef = doc(db, "users", uid, "patients", patient_doc_id(clean_patient_name));
@@ -300,6 +361,7 @@ export async function getHistoryFromFirestore(uid: string, count = 50): Promise<
       turnaround_s: data.turnaroundS || 0,
       image_url: ensure_https_url(data.imageUrl || ""),
       annotated_image_url: ensure_https_url(data.annotatedImageUrl || ""),
+      result_filename: data.resultFilename || extract_result_filename(data.annotatedImageUrl || ""),
     };
   });
 }
@@ -372,9 +434,38 @@ export async function getPatientScansFromFirestore(uid: string, name: string): P
         turnaround_s: data.turnaroundS || 0,
         image_url: ensure_https_url(data.imageUrl || ""),
         annotated_image_url: ensure_https_url(data.annotatedImageUrl || ""),
+        result_filename: data.resultFilename || extract_result_filename(data.annotatedImageUrl || ""),
       };
     })
     .sort((a, b) => timestamp_to_millis(b.timestamp) - timestamp_to_millis(a.timestamp));
+}
+
+
+/** Resolve a saved scan image: durable URL, or re-sign local /static/results file. */
+export async function resolveSavedScanImageUrl(scan: ScanRecord): Promise<string> {
+  const candidates = [scan.annotated_image_url || "", scan.image_url || ""].filter(Boolean);
+  for (const url of candidates) {
+    const ok = await new Promise<boolean>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+    if (ok) return url;
+  }
+
+  const filename =
+    scan.result_filename ||
+    extract_result_filename(scan.annotated_image_url || "") ||
+    extract_result_filename(scan.image_url || "");
+  if (!filename) return "";
+
+  try {
+    return await refreshResultImageUrl(filename);
+  } catch (error) {
+    console.error("Could not refresh saved scan image URL", error);
+    return "";
+  }
 }
 
 export async function deleteScanFromFirestore(uid: string, scanId: string): Promise<void> {

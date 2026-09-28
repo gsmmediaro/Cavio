@@ -1,18 +1,19 @@
-﻿"""FastAPI application for Caries Screening."""
+"""FastAPI application for Caries Screening."""
 
 import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from web.backend.auth import AuthUser, get_current_user
 from web.backend.routers import analyze, auth_api, billing
 from web.backend.services import credits as credits_service
 from web.backend.services import inference
-from web.backend.services.result_urls import verify_result_signature
+from web.backend.services.result_urls import append_result_signature, verify_result_signature
 
 STATIC_DIR = Path(__file__).resolve().parent / 'static'
 RESULTS_DIR = STATIC_DIR / 'results'
@@ -93,6 +94,34 @@ async def get_signed_result(
     if not path.is_file():
         raise HTTPException(status_code=404, detail='Not found')
     return FileResponse(path, media_type='image/jpeg')
+
+
+
+@app.get('/api/results/{filename}/url')
+async def refresh_result_url(
+    filename: str,
+    request: Request,
+    user: AuthUser = Depends(get_current_user),
+):
+    """Re-issue a short-lived signed URL for a result image that still exists on disk.
+
+    Past scans store annotated URLs in Firestore; those signatures expire after
+    ~15 minutes. Authenticated clients call this to reopen saved scans locally
+    (and on hosts where result files persist).
+    """
+    _ = user  # auth gate only; result files are opaque UUIDs
+    if '/' in filename or '\\' in filename or '..' in filename or not filename.endswith(('.jpg', '.jpeg', '.png', '.webp')):
+        raise HTTPException(status_code=404, detail='Not found')
+    path = RESULTS_DIR / filename
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail='Saved scan image is no longer available')
+    base = str(request.base_url).rstrip('/')
+    annotated_url = f'{base}/static/results/{filename}'
+    forwarded_proto = request.headers.get('x-forwarded-proto', '').lower()
+    if forwarded_proto == 'https' and annotated_url.startswith('http://'):
+        annotated_url = annotated_url.replace('http://', 'https://', 1)
+    annotated_url = append_result_signature(annotated_url, filename)
+    return {'url': annotated_url, 'filename': filename}
 
 
 app.include_router(analyze.router)

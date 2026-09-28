@@ -75,3 +75,29 @@ def test_register_and_me(client):
     me = client.get('/api/auth/me', headers={'Authorization': f"Bearer {body['access_token']}"})
     assert me.status_code == 200
     assert me.json()['email'] == email
+
+
+def test_refresh_result_url_requires_auth_and_reissues(client, auth_headers, tmp_path, monkeypatch):
+    from urllib.parse import urlparse
+
+    from web.backend import main as main_mod
+
+    results = tmp_path / "results"
+    results.mkdir()
+    filename = "abc123456789.jpg"
+    (results / filename).write_bytes(b"\xff\xd8\xff\xd9" + b"x" * 64)
+    monkeypatch.setattr(main_mod, "RESULTS_DIR", results)
+
+    denied = client.get(f"/api/results/{filename}/url")
+    assert denied.status_code == 401
+
+    ok = client.get(f"/api/results/{filename}/url", headers=auth_headers)
+    assert ok.status_code == 200
+    body = ok.json()
+    assert filename in body["url"]
+    assert "sig=" in body["url"] and "exp=" in body["url"]
+
+    parsed = urlparse(body["url"])
+    img = client.get(parsed.path + ("?" + parsed.query if parsed.query else ""))
+    assert img.status_code == 200
+    assert img.content[:2] == b"\xff\xd8"

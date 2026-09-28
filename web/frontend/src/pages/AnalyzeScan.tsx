@@ -6,6 +6,7 @@ import {
   analyzeImage,
   getModels,
   getPatientScansFromFirestore,
+  resolveSavedScanImageUrl,
   saveScanToFirestore,
   updateScanPatientName,
   type AnalysisResult,
@@ -48,27 +49,16 @@ function to_result_from_saved_scan(scan: ScanRecord): AnalysisResult {
   };
 }
 
-function check_image_url(url: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (!url) {
-      resolve(false);
-      return;
-    }
-    const img = new Image();
-    img.onload = () => resolve(true);
-    img.onerror = () => resolve(false);
-    img.src = url;
-  });
-}
-
 async function pick_first_valid_saved_scan(
   scans: ScanRecord[],
 ): Promise<ScanRecord | null> {
   for (const scan of scans) {
-    const candidate_url = scan.annotated_image_url || scan.image_url || "";
-    if (!candidate_url) continue;
-    const ok = await check_image_url(candidate_url);
-    if (ok) return scan;
+    const resolved = await resolveSavedScanImageUrl(scan);
+    if (!resolved) continue;
+    return {
+      ...scan,
+      annotated_image_url: resolved,
+    };
   }
   return null;
 }
