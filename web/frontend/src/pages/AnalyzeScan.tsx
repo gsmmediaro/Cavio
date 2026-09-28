@@ -574,26 +574,7 @@ export default function AnalyzeScan() {
             : t("analyze.home.greeting")}
         </motion.h1>
 
-        {/* Description - only shown to non-logged-in users */}
-        {!user && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-            style={{
-              fontSize: 15,
-              color: "var(--color-ink-secondary)",
-              textAlign: "left",
-              marginBottom: 40,
-              lineHeight: 1.75,
-              maxWidth: 520,
-            }}
-          >
-            <p style={{ marginBottom: 12 }}>{t("analyze.home.desc1Before")} <strong style={{ color: "var(--color-ink)", fontWeight: 600 }}>{t("analyze.home.desc1Bold")}</strong>{t("analyze.home.desc1After")}</p>
-            <p style={{ marginBottom: 12 }}>{t("analyze.home.desc2Before")} <strong style={{ color: "var(--color-ink)", fontWeight: 600 }}>{t("analyze.home.desc2Bold")}</strong> {t("analyze.home.desc2After")}</p>
-            <p>{t("analyze.home.desc3")}</p>
-          </motion.div>
-        )}
+        {/* Description under hero title removed */}
         </>
         ) : null}
 
