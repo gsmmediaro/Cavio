@@ -52,7 +52,7 @@ def _split_csv(value: str) -> list[str]:
 origins = _split_csv(
     os.getenv(
         'CORS_ORIGINS',
-        'http://localhost:5173,http://127.0.0.1:5173',
+        'http://localhost:5173,http://127.0.0.1:5173,https://cavio.ro,https://www.cavio.ro,https://cavio.pages.dev',
     )
 )
 
@@ -63,7 +63,8 @@ for key in ('FRONTEND_ORIGIN', 'FRONTEND_URL'):
 
 origin_regex = os.getenv('CORS_ORIGIN_REGEX')
 if origin_regex is None:
-    origin_regex = r'^https://([a-zA-Z0-9-]+\.)?vercel\.app$'
+    # Default: Cloudflare Pages hosts + custom cavio.ro (apex/www/subdomains).
+    origin_regex = r'^https://([a-zA-Z0-9-]+\.)?(pages\.dev|cavio\.ro)$'
 else:
     origin_regex = origin_regex.strip() or None
 

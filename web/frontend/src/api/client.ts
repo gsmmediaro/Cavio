@@ -101,16 +101,25 @@ export async function refreshResultImageUrl(filename: string): Promise<string> {
 
 async function persist_annotated_image(uid: string, annotatedUrl: string, filenameHint: string): Promise<string> {
   if (!annotatedUrl) return "";
+  // Already durable (Firebase Storage / GCS) — keep as-is.
+  if (/firebasestorage\.googleapis\.com|storage\.googleapis\.com/i.test(annotatedUrl)) {
+    return annotatedUrl;
+  }
   try {
-    const res = await with_timeout(fetch(annotatedUrl), 8000);
+    // Cross-origin fetch of Railway /static/results requires CORS allowlist
+    // (cavio.ro / pages.dev). Without that, past scans 404 after Railway redeploy.
+    const res = await with_timeout(
+      fetch(annotatedUrl, { mode: "cors", credentials: "omit", cache: "no-store" }),
+      15000,
+    );
     if (!res.ok) return "";
-    const blob = await with_timeout(res.blob(), 8000);
+    const blob = await with_timeout(res.blob(), 15000);
     if (!blob || blob.size < 32) return "";
     const safe_name = (filenameHint || "annotated.jpg").replace(/[^a-zA-Z0-9._-]/g, "_");
     const storage_path = `users/${uid}/scans/${Date.now()}_annotated_${safe_name}`;
     const image_ref = ref(storage, storage_path);
-    await with_timeout(uploadBytes(image_ref, blob), 12000);
-    return await with_timeout(getDownloadURL(image_ref), 4000);
+    await with_timeout(uploadBytes(image_ref, blob, { contentType: blob.type || "image/jpeg" }), 20000);
+    return await with_timeout(getDownloadURL(image_ref), 8000);
   } catch (error) {
     console.error("Could not persist annotated image to Firebase Storage", error);
     return "";
