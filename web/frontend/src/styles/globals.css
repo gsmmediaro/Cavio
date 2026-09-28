@@ -4,6 +4,15 @@
 @source "../vendor/notra-ui/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
+/* Cavio landing display face — used by Analyze hero greeting only (not Notra Inter) */
+@font-face {
+  font-family: "Exposure Trial";
+  src: url("/ExposureTrial.otf") format("opentype"), local("Exposure Trial"), local("ExposureTrial");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /*
  * Typography from Notra SoT (apps/crack-workbench + apps/dashboard layouts):
  *   Inter        → --font-inter → --font-sans  (next/font/google)

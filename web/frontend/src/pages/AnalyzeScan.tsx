@@ -553,13 +553,13 @@ export default function AnalyzeScan() {
           </div>
         </motion.div>
 
-        {/* Greeting */}
-        <motion.h1 className="font-sans"
+        {/* Greeting — Cavio display face (Exposure Trial), not Notra Inter */}
+        <motion.h1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
           style={{
-            fontFamily: "var(--font-inter)",
+            fontFamily: '"Exposure Trial", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
             fontSize: isMobile ? 36 : 52,
             fontWeight: 400,
             color: "var(--color-ink)",
